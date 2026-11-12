@@ -1559,7 +1559,7 @@ body::before {
 }
 .tabs .in {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 4px;
   max-width: 760px;
   height: var(--tabh);
@@ -1631,7 +1631,7 @@ body::before {
     overflow: hidden;
   }
   .tabs .in {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     max-width: none;
     height: 50px;
     padding: 6px 6px 0;
@@ -1667,5 +1667,59 @@ body::before {
   #myDeck {
     flex: 1 1 auto;
     max-width: none;
+  }
+}
+
+/* 確率タブ・タブ7個時のスマホ表示 */
+.oddsin {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.oddsin label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.oddsin input {
+  width: 100%;
+  font-family: var(--f-num);
+  font-size: 16px;
+}
+@media (max-width: 520px) {
+  .oddsin {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.tile.odds {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.tile.odds .btn {
+  margin-top: 4px;
+  font-size: 12px;
+  white-space: normal;
+  text-align: left;
+}
+.brickrow label small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+.brickrow input {
+  width: 8em;
+}
+@media (max-width: 899px) {
+  .tabs a b {
+    font-size: 13px;
+  }
+  .tabs a {
+    font-size: 11px;
+  }
+  .tabs .in {
+    gap: 3px;
+    padding: 0 4px 6px;
   }
 }

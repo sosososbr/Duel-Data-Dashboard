@@ -172,12 +172,37 @@
             <a href="#charts" data-tab="charts"><b>Trend</b>調子</a>
             <a href="#env" data-tab="env"><b>Meta</b>環境</a>
             <a href="#dtl" data-tab="dtl"><b>DTL</b>要因分解</a>
+  <a href="#odds" data-tab="odds"><b>Odds</b>確率</a>
             <a href="#history" data-tab="history"><b>Log</b>戦績</a>
             <a href="#data" data-tab="data"><b>Setup</b>設定</a>
           </div>
         </nav>
         <main>
-          <section class="view" id="v-history" hidden>
+          <section class="view" id="v-odds" hidden>
+    <div class="card">
+      <div class="card-h"><h2>初手確率</h2><span class="sub">デッキからH枚引いたとき、採用札A・Bを引ける確率</span></div>
+      <div class="oddsin">
+        <label>デッキ枚数 D<input id="oddD" type="number" inputmode="numeric" min="1" max="60"></label>
+        <label>引く枚数 H<input id="oddH" type="number" inputmode="numeric" min="0"></label>
+        <label>採用札 A の枚数<input id="oddA" type="number" inputmode="numeric" min="0"></label>
+        <label>採用札 B の枚数<input id="oddB" type="number" inputmode="numeric" min="0"></label>
+      </div>
+      <div class="tiles" id="oddsOut"></div>
+      <div class="hint" id="oddsTarget"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>確率の推移</h2><span class="sub">1つの値だけを変えたとき</span>
+        <div class="seg mini" id="oddsAxis" style="margin-left:auto"><button data-x="D">D</button><button data-x="H">H</button><button data-x="A">A</button><button data-x="B">B</button></div></div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>Aを1枚以上</span><span><i style="background:var(--c2)"></i>AかB</span><span><i style="background:var(--c3)"></i>AとB</span><span>縦の点線＝今の値</span></div>
+      <div class="chart" id="oddsChart"></div>
+      <div class="notes">
+        <p>計算は超幾何分布です。A・Bは別々のカードとして扱います。P(A≥1) = 1 − C(D−A, H) ÷ C(D, H)、P(AかB) = 1 − C(D−A−B, H) ÷ C(D, H)、P(AとB) = 1 − [C(D−A, H) + C(D−B, H) − C(D−A−B, H)] ÷ C(D, H)。</p>
+        <p>「事故率に反映」は、選んだ条件を初動の成立条件とみなし、引けない確率を事故率の理論値として使用デッキ・バージョンに保存します。DTLの事故効果の基準 ā に使われます。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-history" hidden>
             <div class="filters" data-filters></div>
             <div class="card">
               <div class="card-h"><h2>先後・事故・プレミ</h2></div>
@@ -314,7 +339,9 @@
                   >同デッキ勝率（色付きの列）だけは、使用デッキごとに入力します。同じデッキの使い手のその対面での勝率です。空欄は自分の勝率で代用し、ミラーは50%として扱います。
                 </p>
               </div>
-              <div class="tblw" id="benchTable"></div>
+              <div class="kv brickrow"><label for="brickIn">事故率の基準値（理論値）%<small id="brickLabel"></small></label><input id="brickIn" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="空欄＝実績から計算"></div>
+      <div class="hint" style="margin-top:-6px">Oddsタブの「事故率に反映」でも入力できます。DTLの事故効果の基準 ā に使います。</div>
+      <div class="tblw" id="benchTable"></div>
               <div class="inline" style="margin-top: 0">
                 <input id="benchNew" type="text" list="benchList" placeholder="デッキを追加（未対戦でも可）" /><datalist
                   id="benchList"
