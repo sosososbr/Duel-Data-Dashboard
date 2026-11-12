@@ -90,7 +90,7 @@
             </div>
           </div>
           <div class="field">
-            <span class="lbl">フラグ</span>
+            <span class="lbl">フラグ（勝敗に影響した特殊要因）</span>
             <div class="toggles">
               <button class="tg" id="tgBuild" aria-pressed="false">構築</button
               ><button class="tg" id="tgMiss" aria-pressed="false">プレミ</button
@@ -98,6 +98,20 @@
               ><button class="tg" id="tgOppBrick" aria-pressed="false">相手事故</button>
             </div>
             <div class="hint" id="buildHint" hidden></div>
+            <details class="more flaghelp">
+              <summary>どんな時に押す？</summary>
+              <p>
+                <b>構築</b
+                >：自分の構築（採用札・型）が勝敗に効いた試合。勝敗に合わせて「構築で勝ち／構築で負け」になる
+              </p>
+              <p><b>プレミ</b>：自分の操作ミス・判断ミスがあった試合（勝敗に関係なく）</p>
+              <p>
+                <b>事故</b
+                >：自分で定義した「事故」に当たる試合。例：先攻で初動札を引けない、後攻で捲り札を引けない
+                など。デッキによって定義は変わるので、Oddsタブで計算する理論値と同じ基準で付けてください
+              </p>
+              <p><b>相手事故</b>：相手がほとんど動けなかった試合</p>
+            </details>
           </div>
           <div class="row2">
             <div class="field">
@@ -143,7 +157,7 @@
             </div>
           </div>
           <details class="more" id="moreBox">
-            <summary>順位・銀ライン・DP・日時</summary>
+            <summary>順位・目標ライン・DP・日時</summary>
             <div class="row2">
               <div class="field">
                 <label class="lbl" for="rankIn">順位</label
@@ -156,7 +170,8 @@
                 />
               </div>
               <div class="field">
-                <label class="lbl" for="silverIn">銀ライン（100位）</label
+                <label class="lbl" for="silverIn"
+                  ><span class="tgtLbl">100位ライン</span>（DP）</label
                 ><input
                   id="silverIn"
                   type="number"
@@ -263,7 +278,7 @@
                   − C(D−A−B, H)] ÷ C(D, H)。
                 </p>
                 <p>
-                  「事故率に反映」は、選んだ条件を初動の成立条件とみなし、引けない確率を事故率の理論値として使用デッキ・バージョンに保存します。DTLの事故効果の基準
+                  「先攻事故率に反映」「後攻事故率に反映」は、選んだ条件を引けない確率を、自分で定義した「事故」の理論値として、使用デッキ・バージョンの先攻／後攻それぞれに保存します。DTLの事故効果の基準
                   ā に使われます。
                 </p>
               </div>
@@ -319,7 +334,9 @@
                     max="50"
                     aria-label="移動平均の試合数"
                   />戦）</span
-                ><span><i style="background: var(--silver)"></i>銀ライン</span
+                ><span
+                  ><i style="background: var(--silver)"></i
+                  ><span class="tgtLbl">100位ライン</span></span
                 ><span
                   ><i style="background: var(--c2); opacity: 0.45"></i
                   ><i style="background: var(--c2); opacity: 0.2"></i>BB（<input
@@ -347,6 +364,23 @@
                 <div class="chart" id="chMacd"></div>
               </div>
               <div class="verdict" id="macdVerdict"></div>
+              <details class="more explain">
+                <summary>BB・MACDの見方</summary>
+                <p>
+                  <b>BB（ボリンジャーバンド）</b>：直近の DP
+                  の平均を中心に、普段の上下の幅（標準偏差 σ）を帯で表したもの。濃い帯が
+                  ±1σ（約7割が収まる範囲）、薄い帯が ±2σ（約95%）。DP
+                  が帯の外に出たら、普段の揺れを超えた好調・不調のサイン。帯が細いときは勝ち負けが拮抗、太いときは連勝・連敗で大きく動いている状態。
+                </p>
+                <p>
+                  <b>MACD</b>：短期と長期の DP の平均の差で、DP
+                  が伸びる勢いを表したもの。青線（MACD）がオレンジ線（シグナル＝MACD
+                  の平均）を下から上に抜けたら勢いが上向きに変わった合図（GC）、上から下に抜けたら下向きに変わった合図（DC）。棒は両線の差で、縮んでいくと勢いが弱まっている途中。「短め・標準・長め」で見る期間を切り替えられる。
+                </p>
+                <p>
+                  どちらも参考指標。少ない試合数ではたまたまの連勝・連敗にも反応するので、休憩や構築見直しのきっかけとして使うのがおすすめ。
+                </p>
+              </details>
             </div>
             <div class="card">
               <div class="card-h">
@@ -441,19 +475,31 @@
                 </p>
               </div>
               <div class="kv brickrow">
-                <label for="brickIn">事故率の基準値（理論値）%<small id="brickLabel"></small></label
-                ><input
-                  id="brickIn"
-                  type="number"
-                  inputmode="decimal"
-                  step="0.1"
-                  min="0"
-                  max="100"
-                  placeholder="空欄＝実績から計算"
-                />
+                <label>事故率の理論値 %<small id="brickLabel"></small></label
+                ><span class="brick2"
+                  ><label
+                    >先攻<input
+                      id="brickInF"
+                      type="number"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      placeholder="実績" /></label
+                  ><label
+                    >後攻<input
+                      id="brickInS"
+                      type="number"
+                      inputmode="decimal"
+                      step="0.1"
+                      min="0"
+                      max="100"
+                      placeholder="実績" /></label
+                ></span>
               </div>
               <div class="hint" style="margin-top: -6px">
-                Oddsタブの「事故率に反映」でも入力できます。DTLの事故効果の基準 ā に使います。
+                「事故」はフラグで自分が定義したものと同じ基準で計算してください。Oddsタブの「先攻事故率に反映」「後攻事故率に反映」でも入力できます。空欄は実績から計算し、DTLの事故効果の基準
+                ā に使います。
               </div>
               <div class="tblw" id="benchTable"></div>
               <div class="inline" style="margin-top: 0">
@@ -580,6 +626,17 @@
           <section class="view" id="v-data" hidden>
             <div class="card">
               <h2>使用デッキの設定</h2>
+              <div class="kv">
+                <label for="targetIn">目標順位（DP推移などに「○位ライン」として表示）</label
+                ><input
+                  id="targetIn"
+                  type="number"
+                  inputmode="numeric"
+                  min="1"
+                  placeholder="100"
+                  style="width: 7em"
+                />
+              </div>
               <div class="hint">
                 構築バージョンは、上部の使用デッキの横で切り替えます。以降の記録に付き、事故の基準率もバージョンごとに計算します。
               </div>

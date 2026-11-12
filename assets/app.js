@@ -646,6 +646,18 @@
     toastT = setTimeout(() => (el.hidden = true), 2600);
   }
 
+  /** 目標順位（○位ライン）。既定は100位（銀ライン）。 */
+  const targetRank = () => Math.max(1, Math.round(Number(cfg().targetRank) || 100));
+  function renderTargetLabels() {
+    $$(".tgtLbl").forEach((el) => (el.textContent = `${targetRank()}位ライン`));
+    const el = $("#targetIn");
+    if (el && document.activeElement !== el) el.value = targetRank();
+  }
+  $("#targetIn").addEventListener("change", (e) => {
+    const v = Math.round(Number(e.target.value));
+    cfg().targetRank = v > 0 ? v : null;
+    saveCfg();
+  });
   /* ---------- ヘッダー（常時表示） ---------- */
   function renderHeader() {
     const c = cfg(),
@@ -1191,7 +1203,7 @@
       const d = new Date(m.ts);
       html += `<tr class="m" data-id="${esc(m.id)}"><td>${idx[m.id]}</td><td>${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</td><td class="tx">${esc(m.my)}${m.ver ? `<small style="color:var(--muted)"> ${esc(m.ver)}</small>` : ""}</td><td class="tx">${esc(m.opp)}</td><td class="tx">${esc(m.char || "")}</td><td class="tx">${esc(m.player || "")}</td><td>${m.first ? "先" : "後"}</td><td class="${m.win ? "w" : "l"}">${m.win ? "○" : "×"}</td><td>${fmtPt(Number(m.pt) || 0)}</td><td>${(cum[m.id] || 0).toLocaleString("ja-JP")}${m.dp != null && m.dp !== "" ? '<span class="sub-mark" title="実際のDPで補正">実</span>' : ""}</td><td>${m.rank != null ? m.rank : ""}</td><td>${m.silver != null ? Number(m.silver).toLocaleString("ja-JP") : ""}</td><td class="tx">${fl}</td><td class="tx">${esc(m.note || "")}</td></tr>`;
     });
-    el.innerHTML = `<table class="t hist"><thead><tr><th>#</th><th>時刻</th><th>使用</th><th>相手</th><th>キャラ</th><th>プレイヤー</th><th>先後</th><th>勝敗</th><th>DP増減</th><th>DP</th><th>順位</th><th>銀ライン</th><th>フラグ</th><th>メモ</th></tr></thead><tbody>${html}</tbody></table>`;
+    el.innerHTML = `<table class="t hist"><thead><tr><th>#</th><th>時刻</th><th>使用</th><th>相手</th><th>キャラ</th><th>プレイヤー</th><th>先後</th><th>勝敗</th><th>DP増減</th><th>DP</th><th>順位</th><th>${targetRank()}位ライン</th><th>フラグ</th><th>メモ</th></tr></thead><tbody>${html}</tbody></table>`;
   }
   $("#histSub").addEventListener("click", (e) => {
     if (e.target.closest("[data-player]")) {
@@ -1784,7 +1796,7 @@
     const ms = windowMatches();
     const { ptv, sv, ma, last, lastRank } = dpSeries(ms);
     $("#ptSub").textContent = ptv.length
-      ? `期間内 ${fmtPt(ptv[ptv.length - 1] - ptv[0])}${lastRank != null ? ` ・ 最新順位 ${lastRank}位` : ""}${last != null && ptv.length ? ` ・ 銀ラインまで ${fmtPt(last - ptv[ptv.length - 1])}` : ""}`
+      ? `期間内 ${fmtPt(ptv[ptv.length - 1] - ptv[0])}${lastRank != null ? ` ・ 最新順位 ${lastRank}位` : ""}${last != null && ptv.length ? ` ・ ${targetRank()}位ラインまで ${fmtPt(last - ptv[ptv.length - 1])}` : ""}`
       : "";
     const bands = [
       [2, 0.12],
@@ -2110,7 +2122,31 @@
     lab.forEach((i, j) => {
       s += `<text x="${X(i)}" y="${h - 6}" text-anchor="${n < 2 ? "middle" : j === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtT(ms[i].ts)}</text>`;
     });
-    el.innerHTML = s + "</svg>";
+
+    // 直近10戦の「構築で勝ち／構築で負け」の数（構築が合っているかの目安）
+    const bW = ms.map(
+        (m, i) =>
+          ms.slice(Math.max(0, i - 9), i + 1).filter((x) => !x.brick && Number(x.build) > 0).length,
+      ),
+      bL = ms.map(
+        (m, i) =>
+          ms.slice(Math.max(0, i - 9), i + 1).filter((x) => !x.brick && Number(x.build) < 0).length,
+      );
+    const h2 = 64,
+      top2 = 6,
+      bot2 = 14,
+      bmax = Math.max(3, ...bW, ...bL);
+    const Y2 = (v) => top2 + (h2 - top2 - bot2) * (1 - v / bmax);
+    let s2 = `<svg width="${w}" height="${h2}" viewBox="0 0 ${w} ${h2}" role="img" aria-label="直近10戦の構築勝ち・構築負けの数">`;
+    [0, bmax].forEach(
+      (t) =>
+        (s2 += `<line x1="${pl}" x2="${w - pr}" y1="${Y2(t)}" y2="${Y2(t)}" stroke="var(--line)" stroke-width="1"${t ? ' stroke-dasharray="2 3"' : ""}/><text x="${pl - 6}" y="${Y2(t) + 4}" text-anchor="end">${t}</text>`),
+    );
+    const line2 = (a) =>
+      a.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y2(v).toFixed(1)).join(" ");
+    s2 += `<path d="${line2(bW)}" fill="none" stroke="var(--win)" stroke-width="1.8"/><path d="${line2(bL)}" fill="none" stroke="var(--loss)" stroke-width="1.8"/>`;
+    s2 += `<text x="${pl}" y="${h2 - 2}">構築で勝ち／構築で負け（直近10戦）</text></svg>`;
+    el.innerHTML = s + "</svg>" + s2;
     const now = pts[n - 1];
     lg.innerHTML =
       keys
@@ -2244,13 +2280,15 @@
     const isFlag = (m) => !m.brick && (Number(m.build) || 0) !== 0;
     const NF = ms.filter((m) => !isFlag(m)),
       pNF0 = NF.length ? NF.filter((m) => m.win).length / NF.length : pbar;
-    const theory = brickTheory(deck, ms[ms.length - 1].ver || "");
-    const abar =
-      theory != null
-        ? theory / 100
-        : ref.length
-          ? ref.filter((m) => m.brick).length / ref.length
-          : B.length / N;
+    const abar0 = ref.length ? ref.filter((m) => m.brick).length / ref.length : B.length / N;
+    // 事故率の基準：先攻・後攻それぞれの理論値。未設定の側は実績（先後共通）で代用する
+    const verNow = ms[ms.length - 1].ver || "",
+      thF = brickTheory(deck, verNow, "first"),
+      thS = brickTheory(deck, verNow, "second");
+    const aF = thF != null ? thF / 100 : abar0,
+      aS = thS != null ? thS / 100 : abar0,
+      theory = thF ?? thS;
+    let abar = 0;
     const E = envRows(),
       off = isOffBench(deck),
       op = off ? otherProfile() : null,
@@ -2289,7 +2327,9 @@
       const f = n_ ? f_.length / n_ : 0.5,
         pF = shr(f_.filter((m) => m.win).length, f_.length, pF0),
         pS = shr(s_.filter((m) => m.win).length, s_.length, pS0);
-      const ai = n_ ? a.filter((m) => m.brick).length / n_ : abar;
+      const abarI = f * aF + (1 - f) * aS;
+      abar += s * abarI;
+      const ai = n_ ? a.filter((m) => m.brick).length / n_ : abarI;
       const isO = od && n === OTHER;
       const row = isO
         ? { q: od.q, omega: od.omega }
@@ -2327,7 +2367,7 @@
         pS,
         a: ai,
         coin: s * (f - 0.5) * (pF - pS),
-        brick: s * (ai - abar) * (xB - xN),
+        brick: s * (ai - abarI) * (xB - xN),
         build: (() => {
           const nf = a.filter((m) => !isFlag(m)),
             pnf = shr(nf.filter((m) => m.win).length, nf.length, pNF0);
@@ -2351,6 +2391,8 @@
       pbar,
       abar,
       abarTheory: theory != null,
+      aF,
+      aS,
       offBench: off,
       xB,
       xN,
@@ -2405,17 +2447,24 @@
     main.innerHTML = `<div class="card-h"><h2>DTL要因分解</h2><span class="sub">${esc(deck)} ・ ${r.N}戦</span></div>
   <div class="total"><span class="big">${sgn(r.tot)}<span style="font-size:16px">pt</span></span><span class="sub">勝率 ${pct(r.pbar)} − 50%</span></div>
   <div class="dtl">
-   <div class="grp">${drow("Deck", r.deck, max, "head")}${drow("基礎力", r.base, max, "sub")}${drow("環境強度", r.field, max, "sub")}${drow("メタ相性", r.meta, max, "sub")}</div>
-   <div class="grp">${drow("Tech", r.tech, max, "head")}${drow("構築力", r.build, max, "sub")}${drow("プレイ力", r.play, max, "sub")}</div>
-   <div class="grp">${drow("Luck", r.luck, max, "head")}${drow("先後", r.coin, max, "sub")}${drow("事故", r.brick, max, "sub")}</div>
+   <div class="grp">${drow("Deck<small>デッキの強さ</small>", r.deck, max, "head")}${drow("基礎力", r.base, max, "sub")}${drow("環境強度", r.field, max, "sub")}${drow("メタ相性", r.meta, max, "sub")}</div>
+   <div class="grp">${drow("Tech<small>プレイヤーの強さ</small>", r.tech, max, "head")}${drow("構築力", r.build, max, "sub")}${drow("プレイ力", r.play, max, "sub")}</div>
+   <div class="grp">${drow("Luck<small>運の強さ</small>", r.luck, max, "head")}${drow("先後", r.coin, max, "sub")}${drow("事故", r.brick, max, "sub")}</div>
   </div>
   <div class="notes">
    ${r.N < 30 ? `<p>試合数が${r.N}戦と少ないため、値は大きくぶれます。30戦以上を目安にしてください。</p>` : ""}
    ${r.subs.length ? `<p>同デッキ勝率が未入力の相手（${r.subs.map(esc).join("、")}）は自分の勝率で代用しています。その分 Tech が0に近づきます。</p>` : ""}
    ${r.od ? `<p>ベンチマークにないデッキ${r.pooled.length ? `（${r.pooled.map(esc).join("、")}）` : ""}は「その他」にまとめ、その他の値は登録デッキから逆算しています。${[r.od.bWhy, r.od.qWhy, r.od.oWhy].filter(Boolean).map(esc).join("。")}</p>` : ""}
+   ${(() => {
+     const bw = ms.filter((m) => !m.brick && Number(m.build) > 0).length,
+       bl = ms.filter((m) => !m.brick && Number(m.build) < 0).length;
+     return bw + bl
+       ? `<p>構築力は自己申告のフラグに基づくため、勝った試合ほど「構築のおかげ」と付けやすく、高めに出やすい傾向があります（構築で勝ち ${bw}件・構築で負け ${bl}件）。負けた試合にも同じ基準で付けると精度が上がります。</p>`
+       : "";
+   })()}
    ${r.offBench ? `<p>使用デッキ（${esc(deck)}）はベンチマークにないため「その他」とみなし、同デッキ勝率と環境勝率を、ほかのデッキのベンチマークから逆算しています（「推」の印）。</p>` : ""}
    ${!r.omSet ? `<p>ベンチマークの環境データに自デッキ（${esc(deck)}）の環境勝率ωがないため50%として扱い、基礎力は0になります。</p>` : ""}
-   <p>事故の基準率 ${pct(r.abar)}${r.abarTheory ? "（理論値）" : "（同デッキ・同バージョン全期間の実績）"}、事故時勝率 ${pct(r.xB)}、通常時勝率 ${pct(r.xN)}。プレイ力は Tech から構築力を引いた残りです。</p>
+   <p>事故の基準率 先攻 ${pct(r.aF)}・後攻 ${pct(r.aS)}${r.abarTheory ? "（理論値。未設定の側は実績）" : "（同デッキ・同バージョン全期間の実績）"}、事故時勝率 ${pct(r.xB)}、通常時勝率 ${pct(r.xN)}。プレイ力は Tech から構築力を引いた残りです。</p>
   </div>`;
     const c = (v) => `<td class="${v >= 0 ? "pos" : "neg"}">${sgn(v)}</td>`;
     $("#dtlTable").innerHTML =
@@ -2945,7 +2994,7 @@
         "構築",
         "メモ",
         "順位",
-        "銀ライン",
+        `${targetRank()}位ライン`,
         "プレミ",
         "相手キャラ",
         "相手プレイヤー",
@@ -3064,20 +3113,30 @@
   } catch (e) {
     // 前回の入力がなくても既定値で動く
   }
-  const brickKey = () => `${cfg().myDeck}|${curVer()}`;
-  function brickTheory(deck, ver) {
-    const v = (cfg().brickTheory || {})[`${deck}|${ver}`];
+  const brickKey = (side) => `${cfg().myDeck}|${curVer()}|${side}`;
+  /** 事故率の理論値（%）。side は "first"（先攻）／"second"（後攻）。未設定なら旧形式（先後共通）の値。 */
+  function brickTheory(deck, ver, side) {
+    const t = cfg().brickTheory || {};
+    const v = t[`${deck}|${ver}|${side}`] ?? t[`${deck}|${ver}`];
     return v == null || v === "" ? null : Number(v);
   }
-  function setBrickTheory(pctValue) {
+  function setBrickTheory(side, pctValue) {
     const c = cfg();
     if (!c.myDeck) {
       toast("先に上部で使用デッキを選んでください");
       return;
     }
     c.brickTheory = Object.assign({}, c.brickTheory || {});
-    if (pctValue == null) delete c.brickTheory[brickKey()];
-    else c.brickTheory[brickKey()] = Math.round(pctValue * 10) / 10;
+    const legacy = `${c.myDeck}|${curVer()}`;
+    if (c.brickTheory[legacy] != null) {
+      // 旧形式（先後共通）の値を、先攻・後攻それぞれに引き継いでから個別に上書きする
+      ["first", "second"].forEach((s) => {
+        if (c.brickTheory[brickKey(s)] == null) c.brickTheory[brickKey(s)] = c.brickTheory[legacy];
+      });
+      delete c.brickTheory[legacy];
+    }
+    if (pctValue == null) delete c.brickTheory[brickKey(side)];
+    else c.brickTheory[brickKey(side)] = Math.round(pctValue * 10) / 10;
     saveCfg();
   }
   function readOddsInputs() {
@@ -3099,7 +3158,8 @@
     });
     const r = drawOdds(ODDS.D, ODDS.H, ODDS.A, ODDS.B);
     const deck = cfg().myDeck,
-      cur = deck ? brickTheory(deck, curVer()) : null;
+      curF = deck ? brickTheory(deck, curVer(), "first") : null,
+      curS = deck ? brickTheory(deck, curVer(), "second") : null;
     const rows = [
       ["a", "Aを1枚以上", "A"],
       ["or", "AかBを1枚以上", "A or B"],
@@ -3109,12 +3169,12 @@
       ? rows
           .map(
             ([k, label, short]) =>
-              `<div class="tile odds"><div class="k">${label}</div><div class="v">${pct(r[k])}</div><div class="s">引けない確率 ${pct(1 - r[k])}</div><button class="btn small" data-brick="${k}"${deck ? "" : " disabled"} title="「${short}」を引けない確率を、事故率の理論値として使います">事故率に反映</button></div>`,
+              `<div class="tile odds"><div class="k">${label}</div><div class="v">${pct(r[k])}</div><div class="s">引けない確率 ${pct(1 - r[k])}</div><div class="bk2"><button class="btn small" data-brick="${k}" data-side="first"${deck ? "" : " disabled"} title="「${short}」を引けない確率を、先攻の事故率の理論値にします">先攻事故率に反映</button><button class="btn small" data-brick="${k}" data-side="second"${deck ? "" : " disabled"} title="「${short}」を引けない確率を、後攻の事故率の理論値にします">後攻事故率に反映</button></div></div>`,
           )
           .join("")
       : '<div class="err">AとBの合計がデッキ枚数を超えています。</div>';
     $("#oddsTarget").textContent = deck
-      ? `反映先：${deck}（${curVer()}）・現在の理論値 ${cur == null ? "未設定（実績から計算）" : cur + "%"}`
+      ? `反映先：${deck}（${curVer()}）・現在の理論値 先攻 ${curF == null ? "未設定" : curF + "%"}／後攻 ${curS == null ? "未設定" : curS + "%"}（未設定は実績から計算）。先攻・後攻で引く枚数が違う場合は、H を変えてから押してください。`
       : "反映先：上部で使用デッキを選ぶと反映できます";
     $$("#oddsAxis button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.x === ODDS.x));
     oddsChart();
@@ -3192,28 +3252,38 @@
     if (!b) return;
     const r = drawOdds(ODDS.D, ODDS.H, ODDS.A, ODDS.B);
     if (!r) return;
-    const v = (1 - r[b.dataset.brick]) * 100;
-    setBrickTheory(v);
+    const v = (1 - r[b.dataset.brick]) * 100,
+      side = b.dataset.side;
+    setBrickTheory(side, v);
     toast(
-      `事故率の理論値を ${Math.round(v * 10) / 10}% にしました（${cfg().myDeck}・${curVer()}）`,
+      `${side === "first" ? "先攻" : "後攻"}の事故率の理論値を ${Math.round(v * 10) / 10}% にしました（${cfg().myDeck}・${curVer()}）`,
     );
   });
-  /* DTL タブの理論値入力欄 */
+  /* DTL タブの理論値入力欄（先攻・後攻） */
   function renderBrickInput() {
-    const deck = cfg().myDeck,
-      el = $("#brickIn");
-    if (!el) return;
-    el.disabled = !deck;
+    const deck = cfg().myDeck;
     $("#brickLabel").textContent = deck ? `${deck}（${curVer()}）` : "使用デッキ未設定";
-    if (document.activeElement !== el) {
-      const v = deck ? brickTheory(deck, curVer()) : null;
-      el.value = v == null ? "" : v;
-    }
+    [
+      ["#brickInF", "first"],
+      ["#brickInS", "second"],
+    ].forEach(([id, side]) => {
+      const el = $(id);
+      el.disabled = !deck;
+      if (document.activeElement !== el) {
+        const v = deck ? brickTheory(deck, curVer(), side) : null;
+        el.value = v == null ? "" : v;
+      }
+    });
   }
-  $("#brickIn").addEventListener("change", (e) => {
-    const v = e.target.value.trim();
-    setBrickTheory(v === "" ? null : clamp(Number(v) || 0, 0, 100));
-  });
+  [
+    ["#brickInF", "first"],
+    ["#brickInS", "second"],
+  ].forEach(([id, side]) =>
+    $(id).addEventListener("change", (e) => {
+      const v = e.target.value.trim();
+      setBrickTheory(side, v === "" ? null : clamp(Number(v) || 0, 0, 100));
+    }),
+  );
 
   /* ---------- サンプルデータ ---------- */
   function startDemo() {
@@ -3344,6 +3414,7 @@
   } catch (e) {}
   function render() {
     renderHeader();
+    renderTargetLabels();
     const wide = isWide(),
       showSide = wide || UI.view === "input";
     const mv = UI.view === "input" ? (wide ? "history" : null) : UI.view;

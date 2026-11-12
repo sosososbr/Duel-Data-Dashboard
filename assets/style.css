@@ -1822,3 +1822,59 @@ body::before {
   background: var(--panel);
   color: var(--ink);
 }
+
+/* 解説・フラグの説明・DTL見出し */
+.explain p,
+.flaghelp p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.explain b,
+.flaghelp b {
+  color: var(--ink);
+}
+.flaghelp {
+  border-top: 0;
+  padding-top: 2px;
+}
+.drow.head .nm small {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.drow {
+  grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr) 4.4em;
+}
+#chStack svg + svg {
+  margin-top: 2px;
+}
+
+/* 事故率の理論値（先攻・後攻） */
+.brick2 {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.brick2 label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.brick2 input {
+  width: 6em;
+}
+.tile.odds .bk2 {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tile.odds .bk2 .btn {
+  flex: 1 1 auto;
+  text-align: center;
+}
