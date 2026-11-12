@@ -2,7 +2,10 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
     <meta
       name="description"
       content="デュエルリンクスのランク戦の戦績を記録・可視化し、勝率を Deck・Tech・Luck に要因分解するツール"
@@ -17,15 +20,20 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261112c" />
-    <script src="assets/app.js?v=20261112c" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261112g" />
+    <script src="assets/app.js?v=20261112g" defer></script>
   </head>
   <body>
     <header class="top">
       <div class="wrap top-in">
         <div class="brand">Duel Data <span>Dashboard</span></div>
         <a class="spark" id="spark" href="#charts" title="DP推移を開く"></a
-        ><a class="dtlmini" id="dtlMini" href="#dtl" aria-label="DTL要因分解を開く"></a>
+        ><a
+          class="dtlmini"
+          id="dtlMini"
+          href="#dtl"
+          aria-label="DTL要因分解を開く"
+        ></a>
         <div class="mydeck">
           <label for="myDeck">使用デッキ</label
           ><select id="myDeck"></select
@@ -42,7 +50,11 @@
         <button class="btn small" id="newMyCancel">やめる</button>
       </div>
       <div class="wrap newdeck" id="newVerRow" hidden>
-        <input id="newVerIn" type="text" placeholder="新しいバージョン名（例：ver.2）" />
+        <input
+          id="newVerIn"
+          type="text"
+          placeholder="新しいバージョン名（例：ver.2）"
+        />
         <button class="btn small" id="newVerAdd">切り替え</button>
         <button class="btn small" id="newVerCancel">やめる</button>
       </div>
@@ -65,12 +77,11 @@
             </div>
             <div class="chips" id="oppChips"></div>
             <div class="inline">
-              <input id="oppNew" type="text" placeholder="新しい相手デッキ" /><button
-                class="btn small"
-                id="oppAdd"
-              >
-                追加
-              </button>
+              <input
+                id="oppNew"
+                type="text"
+                placeholder="新しい相手デッキ"
+              /><button class="btn small" id="oppAdd">追加</button>
             </div>
           </div>
           <div class="row2">
@@ -93,9 +104,12 @@
             <span class="lbl">フラグ（勝敗に影響した特殊要因）</span>
             <div class="toggles">
               <button class="tg" id="tgBuild" aria-pressed="false">構築</button
-              ><button class="tg" id="tgMiss" aria-pressed="false">プレミ</button
+              ><button class="tg" id="tgMiss" aria-pressed="false">
+                プレミ</button
               ><button class="tg" id="tgBrick" aria-pressed="false">事故</button
-              ><button class="tg" id="tgOppBrick" aria-pressed="false">相手事故</button>
+              ><button class="tg" id="tgOppBrick" aria-pressed="false">
+                相手事故
+              </button>
             </div>
             <div class="hint" id="buildHint" hidden></div>
             <details class="more flaghelp">
@@ -104,7 +118,10 @@
                 <b>構築</b
                 >：自分の構築（採用札・型）が勝敗に効いた試合。勝敗に合わせて「構築で勝ち／構築で負け」になる
               </p>
-              <p><b>プレミ</b>：自分の操作ミス・判断ミスがあった試合（勝敗に関係なく）</p>
+              <p>
+                <b>プレミ</b
+                >：自分の操作ミス・判断ミスがあった試合（勝敗に関係なく）
+              </p>
               <p>
                 <b>事故</b
                 >：自分で定義した「事故」に当たる試合。例：先攻で初動札を引けない、後攻で捲り札を引けない
@@ -118,7 +135,12 @@
               <label class="lbl" for="ptIn">DP増減</label>
               <div class="ptbox">
                 <span id="ptSign">±</span
-                ><input id="ptIn" inputmode="numeric" placeholder="1000" autocomplete="off" />
+                ><input
+                  id="ptIn"
+                  inputmode="numeric"
+                  placeholder="1000"
+                  autocomplete="off"
+                />
               </div>
             </div>
             <div class="field">
@@ -182,7 +204,8 @@
               </div>
             </div>
             <div class="field">
-              <label class="lbl" for="dpIn">DP（試合後の実際の値。ずれた時だけ入力）</label
+              <label class="lbl" for="dpIn"
+                >DP（試合後の実際の値。ずれた時だけ入力）</label
               ><input
                 id="dpIn"
                 type="number"
@@ -237,20 +260,39 @@
             <div class="card">
               <div class="card-h">
                 <h2>初手確率</h2>
-                <span class="sub">デッキからH枚引いたとき、採用札A・Bを引ける確率</span>
+                <span class="sub"
+                  >デッキからH枚引いたとき、採用札A・Bを引ける確率</span
+                >
               </div>
               <div class="oddsin">
                 <label
-                  >デッキ枚数 D<input id="oddD" type="number" inputmode="numeric" min="1" max="60"
+                  >デッキ枚数 D<input
+                    id="oddD"
+                    type="number"
+                    inputmode="numeric"
+                    min="1"
+                    max="60"
                 /></label>
                 <label
-                  >引く枚数 H<input id="oddH" type="number" inputmode="numeric" min="0"
+                  >引く枚数 H<input
+                    id="oddH"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
                 /></label>
                 <label
-                  >採用札 A の枚数<input id="oddA" type="number" inputmode="numeric" min="0"
+                  >採用札 A の枚数<input
+                    id="oddA"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
                 /></label>
                 <label
-                  >採用札 B の枚数<input id="oddB" type="number" inputmode="numeric" min="0"
+                  >採用札 B の枚数<input
+                    id="oddB"
+                    type="number"
+                    inputmode="numeric"
+                    min="0"
                 /></label>
               </div>
               <div class="tiles" id="oddsOut"></div>
@@ -268,14 +310,16 @@
               <div class="legend">
                 <span><i style="background: var(--accent)"></i>Aを1枚以上</span
                 ><span><i style="background: var(--c2)"></i>AかB</span
-                ><span><i style="background: var(--c3)"></i>AとB</span><span>縦の点線＝今の値</span>
+                ><span><i style="background: var(--c3)"></i>AとB</span
+                ><span>縦の点線＝今の値</span>
               </div>
               <div class="chart" id="oddsChart"></div>
               <div class="notes">
                 <p>
-                  計算は超幾何分布です。A・Bは別々のカードとして扱います。P(A≥1) = 1 − C(D−A, H) ÷
-                  C(D, H)、P(AかB) = 1 − C(D−A−B, H) ÷ C(D, H)、P(AとB) = 1 − [C(D−A, H) + C(D−B, H)
-                  − C(D−A−B, H)] ÷ C(D, H)。
+                  計算は超幾何分布です。A・Bは別々のカードとして扱います。P(A≥1)
+                  = 1 − C(D−A, H) ÷ C(D, H)、P(AかB) = 1 − C(D−A−B, H) ÷ C(D,
+                  H)、P(AとB) = 1 − [C(D−A, H) + C(D−B, H) − C(D−A−B, H)] ÷ C(D,
+                  H)。
                 </p>
                 <p>
                   「先攻事故率に反映」「後攻事故率に反映」は、選んだ条件を引けない確率を、自分で定義した「事故」の理論値として、使用デッキ・バージョンの先攻／後攻それぞれに保存します。DTLの事故効果の基準
@@ -309,7 +353,9 @@
             <div class="card">
               <div class="card-h">
                 <h2>記録した相手プレイヤー</h2>
-                <span class="sub">名前を押すと、その相手との対戦だけに絞ります</span>
+                <span class="sub"
+                  >名前を押すと、その相手との対戦だけに絞ります</span
+                >
               </div>
               <div class="tblw" id="playerTable"></div>
             </div>
@@ -353,8 +399,11 @@
               <div class="pair">
                 <div class="chart" id="chPt"></div>
                 <div class="macdbar">
-                  <b>MACD</b><span class="lg"><i style="background: var(--accent)"></i>MACD</span
-                  ><span class="lg"><i style="background: var(--c2)"></i>シグナル</span
+                  <b>MACD</b
+                  ><span class="lg"
+                    ><i style="background: var(--accent)"></i>MACD</span
+                  ><span class="lg"
+                    ><i style="background: var(--c2)"></i>シグナル</span
                   ><span class="lg"
                     ><i style="background: var(--win)"></i
                     ><i style="background: var(--loss)"></i>差</span
@@ -368,7 +417,8 @@
                 <summary>BB・MACDの見方</summary>
                 <p>
                   <b>BB（ボリンジャーバンド）</b>：直近の DP
-                  の平均を中心に、普段の上下の幅（標準偏差 σ）を帯で表したもの。濃い帯が
+                  の平均を中心に、普段の上下の幅（標準偏差
+                  σ）を帯で表したもの。濃い帯が
                   ±1σ（約7割が収まる範囲）、薄い帯が ±2σ（約95%）。DP
                   が帯の外に出たら、普段の揺れを超えた好調・不調のサイン。帯が細いときは勝ち負けが拮抗、太いときは連勝・連敗で大きく動いている状態。
                 </p>
@@ -421,7 +471,9 @@
             <div class="card">
               <div class="card-h">
                 <h2>順位帯ごとの相手デッキ</h2>
-                <span class="sub">記録した順位は、次の記録まで（最長3時間）引き継ぎます</span>
+                <span class="sub"
+                  >記録した順位は、次の記録まで（最長3時間）引き継ぎます</span
+                >
               </div>
               <div class="rankcfg">
                 <label for="rankBandIn">区切りの順位</label
@@ -431,7 +483,8 @@
                   inputmode="numeric"
                   placeholder="例：100, 300, 1000, 3000"
                 /><span class="seg mini" id="rankPresets"
-                  ><button data-p="上位">上位向け</button><button data-p="標準">標準</button
+                  ><button data-p="上位">上位向け</button
+                  ><button data-p="標準">標準</button
                   ><button data-p="中位">中位向け</button></span
                 >
               </div>
@@ -442,7 +495,9 @@
               <div class="card-h"><h2>相手デッキ別の勝率</h2></div>
               <div class="legend">
                 <span><i style="background: var(--accent)"></i>勝率</span
-                ><span><i style="background: var(--accent-soft)"></i>95%信頼区間</span
+                ><span
+                  ><i style="background: var(--accent-soft)"></i
+                  >95%信頼区間</span
                 ><span>縦線＝50%</span>
               </div>
               <div class="wr" id="chWr"></div>
@@ -455,7 +510,11 @@
             <div class="card">
               <div class="card-h">
                 <h2>相手デッキ別の内訳</h2>
-                <span class="sub">単位：pt（勝率の%ポイント）</span>
+                <span class="sub">単位：pt（勝率の%ポイント）</span
+                ><span class="seg mini" id="dtlMode" style="margin-left: auto"
+                  ><button data-m="0">D・T・Lのみ</button
+                  ><button data-m="1">細かい項目も表示</button></span
+                >
               </div>
               <div class="tblw" id="dtlTable"></div>
             </div>
@@ -527,9 +586,14 @@
                 <li>
                   s：実戦で当たった相手デッキの比率（実シェア）。b：環境シェア（「その他」の逆算にだけ使用）。ω自分：環境データの自デッキの行の値
                 </li>
-                <li>p：自分の対面勝率。pᶠ／pˢ：先攻／後攻勝率。f：先攻率。a：事故率</li>
+                <li>
+                  p：自分の対面勝率。pᶠ／pˢ：先攻／後攻勝率。f：先攻率。a：事故率
+                </li>
                 <li>q：同デッキ使いの対面勝率。ω：環境全体での勝率</li>
-                <li>q̂ = σ(logit ω自分 − logit ω相手)：強さだけから見た期待勝率。γ = q − q̂：相性</li>
+                <li>
+                  q̂ = σ(logit ω自分 − logit ω相手)：強さだけから見た期待勝率。γ
+                  = q − q̂：相性
+                </li>
               </ul>
               <h3>式</h3>
               <table class="t">
@@ -547,17 +611,23 @@
                   <tr>
                     <td>　環境強度</td>
                     <td class="fx">Σ s(q̂ − ω自分)</td>
-                    <td class="tx">当たった相手が強いほどマイナス。強いデッキが多いか</td>
+                    <td class="tx">
+                      当たった相手が強いほどマイナス。強いデッキが多いか
+                    </td>
                   </tr>
                   <tr>
                     <td>　メタ相性</td>
                     <td class="fx">Σ s·γ</td>
-                    <td class="tx">多い相手ほど重く見て、強さから見込める以上に勝てたか</td>
+                    <td class="tx">
+                      多い相手ほど重く見て、強さから見込める以上に勝てたか
+                    </td>
                   </tr>
                   <tr>
                     <td>Tech</td>
                     <td class="fx">(p̄−½) − Deck − Luck</td>
-                    <td class="tx">同デッキ使いとの差。式の上では Σ s(p**−q)</td>
+                    <td class="tx">
+                      同デッキ使いとの差。式の上では Σ s(p**−q)
+                    </td>
                   </tr>
                   <tr>
                     <td>　構築力</td>
@@ -598,27 +668,31 @@
                   対面ごとの先攻・後攻勝率は、試合数が少ないと極端になるため、全体の先攻・後攻勝率に2試合分寄せて使います（ベイズ縮小）。事故時・通常時の勝率も同様です。
                 </li>
                 <li>
-                  Tech は「合計 − Deck − Luck」で求めるため、Deck + Tech + Luck は常に「勝率 −
-                  50%」と一致します。
+                  Tech は「合計 − Deck − Luck」で求めるため、Deck + Tech + Luck
+                  は常に「勝率 − 50%」と一致します。
                 </li>
                 <li>
-                  同デッキ勝率が未入力の対面は、自分の勝率で代用します（その対面の Tech
+                  同デッキ勝率が未入力の対面は、自分の勝率で代用します（その対面の
+                  Tech
                   は0に近づきます）。環境勝率ωが未入力なら50%として扱います。ωと同デッキ勝率の出典が食い違う分は、メタ相性に入ります。
                 </li>
                 <li>
-                  ベンチマークにないデッキは「その他」にまとめます。その他のシェアは 100% −
-                  登録シェア合計、ω は Σ b·ω = 50%、同デッキ勝率は ω自分 = Σ b·q
-                  の関係から逆算します（5〜95%で丸め）。
+                  ベンチマークにないデッキは「その他」にまとめます。その他のシェアは
+                  100% − 登録シェア合計、ω は Σ b·ω = 50%、同デッキ勝率は ω自分
+                  = Σ b·q の関係から逆算します（5〜95%で丸め）。
                 </li>
                 <li>
                   構築力は、フラグ付きの試合を「普通の構築なら、その対面の通常の勝率どおりだった」とみなした差です。式を変形すると
-                  Σ（フラグ付き試合の結果 − その対面の通常勝率）÷ N になり、構築で勝った試合は 1 −
-                  通常勝率、構築で負けた試合は −通常勝率 だけ寄与します。
+                  Σ（フラグ付き試合の結果 − その対面の通常勝率）÷ N
+                  になり、構築で勝った試合は 1 − 通常勝率、構築で負けた試合は
+                  −通常勝率 だけ寄与します。
                 </li>
                 <li>
                   通常の勝率は、試合数が少ないと不安定なため、全体の通常勝率に2試合分寄せて使います。
                 </li>
-                <li>事故した試合には構築フラグを付けません（事故効果との二重計上を防ぐため）。</li>
+                <li>
+                  事故した試合には構築フラグを付けません（事故効果との二重計上を防ぐため）。
+                </li>
               </ul>
             </div>
           </section>
@@ -627,7 +701,8 @@
             <div class="card">
               <h2>使用デッキの設定</h2>
               <div class="kv">
-                <label for="targetIn">目標順位（DP推移などに「○位ライン」として表示）</label
+                <label for="targetIn"
+                  >目標順位（DP推移などに「○位ライン」として表示）</label
                 ><input
                   id="targetIn"
                   type="number"
@@ -640,19 +715,20 @@
               <div class="hint">
                 構築バージョンは、上部の使用デッキの横で切り替えます。以降の記録に付き、事故の基準率もバージョンごとに計算します。
               </div>
-              <div class="lbl" style="margin: 4px 0 0">使用デッキのバージョン</div>
+              <div class="lbl" style="margin: 4px 0 0">
+                使用デッキのバージョン
+              </div>
               <div class="decklist" id="verListEd"></div>
             </div>
             <div class="card">
               <h2>デッキ候補</h2>
               <div class="decklist" id="deckList"></div>
               <div class="inline" style="margin-top: 0">
-                <input id="deckNew" type="text" placeholder="デッキ名を追加" /><button
-                  class="btn small"
-                  id="deckAdd"
-                >
-                  追加
-                </button>
+                <input
+                  id="deckNew"
+                  type="text"
+                  placeholder="デッキ名を追加"
+                /><button class="btn small" id="deckAdd">追加</button>
               </div>
             </div>
             <div class="card">
@@ -665,19 +741,24 @@
               </div>
               <div class="charlist" id="charListEd"></div>
               <div class="inline" style="margin-top: 0">
-                <input id="charNew" type="text" placeholder="キャラ名を追加" /><button
-                  class="btn small"
-                  id="charAdd"
-                >
-                  追加
-                </button>
+                <input
+                  id="charNew"
+                  type="text"
+                  placeholder="キャラ名を追加"
+                /><button class="btn small" id="charAdd">追加</button>
               </div>
               <details class="more">
                 <summary>まとめて登録・初期リストに戻す</summary>
-                <textarea id="charBulk" placeholder="1行に1キャラずつ貼り付け"></textarea>
+                <textarea
+                  id="charBulk"
+                  placeholder="1行に1キャラずつ貼り付け"
+                ></textarea>
                 <div class="actions">
-                  <button class="btn small" id="charBulkAdd">貼り付けた名前を追加</button
-                  ><button class="btn small" id="charReset">初期リストに戻す</button>
+                  <button class="btn small" id="charBulkAdd">
+                    貼り付けた名前を追加</button
+                  ><button class="btn small" id="charReset">
+                    初期リストに戻す
+                  </button>
                 </div>
               </details>
             </div>
@@ -686,8 +767,15 @@
               <div class="actions">
                 <button class="btn" id="expJson">JSONで書き出し</button>
                 <button class="btn" id="expCsv">CSVで書き出し</button>
-                <label class="btn" for="impFile" style="cursor: pointer">JSONから読み込み</label>
-                <input id="impFile" type="file" accept=".json,application/json" hidden />
+                <label class="btn" for="impFile" style="cursor: pointer"
+                  >JSONから読み込み</label
+                >
+                <input
+                  id="impFile"
+                  type="file"
+                  accept=".json,application/json"
+                  hidden
+                />
               </div>
               <div id="expOut"></div>
               <div class="conn" id="impMsg"></div>
@@ -696,12 +784,18 @@
               <h2>表示と保存先</h2>
               <div class="conn" id="connInfo"></div>
               <div id="fileBox" hidden>
-                <div class="lbl" style="margin: 6px 0 4px">端末のファイルに自動保存</div>
+                <div class="lbl" style="margin: 6px 0 4px">
+                  端末のファイルに自動保存
+                </div>
                 <div class="conn" id="fileInfo"></div>
                 <div class="actions" style="margin-top: 6px">
-                  <button class="btn small" id="filePick">保存先のファイルを選ぶ</button
-                  ><button class="btn small" id="fileResume" hidden>自動保存を再開</button
-                  ><button class="btn small" id="fileRestore" hidden>ファイルから復元</button>
+                  <button class="btn small" id="filePick">
+                    保存先のファイルを選ぶ</button
+                  ><button class="btn small" id="fileResume" hidden>
+                    自動保存を再開</button
+                  ><button class="btn small" id="fileRestore" hidden>
+                    ファイルから復元
+                  </button>
                 </div>
                 <div class="hint" id="fileHint"></div>
               </div>

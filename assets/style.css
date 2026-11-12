@@ -1614,7 +1614,9 @@ body::before {
   .side {
     position: sticky;
     top: calc(var(--hh, 120px) + env(safe-area-inset-top, 0px));
-    max-height: calc(100vh - var(--hh, 120px) - env(safe-area-inset-top, 0px) - 20px);
+    max-height: calc(
+      100vh - var(--hh, 120px) - env(safe-area-inset-top, 0px) - 20px
+    );
     overflow-y: auto;
     padding-block: 10px 12px;
   }
@@ -1877,4 +1879,72 @@ body::before {
 .tile.odds .bk2 .btn {
   flex: 1 1 auto;
   text-align: center;
+}
+
+/* DTL 内訳表の凡例 */
+.dtlleg {
+  margin-top: 6px;
+}
+.dtlt td {
+  transition: none;
+}
+.dtlt {
+  min-width: 860px;
+}
+.dtlt th:nth-child(n + 8),
+.dtlt td:nth-child(n + 8) {
+  min-width: 84px;
+}
+.dtlt.detail {
+  min-width: 1320px;
+}
+.dtlt.detail th.sub {
+  font-size: 10px;
+  color: var(--muted);
+}
+.dtlt td:nth-child(n + 8) {
+  min-width: 76px;
+}
+.dtlt.detail {
+  min-width: 0;
+}
+.dtlt.detail th.gh {
+  text-align: center;
+  color: var(--ink);
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+}
+.dtlt.detail th.sub {
+  font-size: 10px;
+  padding: 4px 3px;
+  text-align: right;
+}
+.dtlt.detail td:nth-child(n + 8) {
+  min-width: 58px;
+  padding: 6px 4px;
+  font-size: 12px;
+}
+.dtlt.detail .g1 {
+  border-left: 2px solid var(--line);
+}
+
+/* 横スクロールする表は一番左の列を固定 */
+.tblw table.t th:first-child,
+.tblw table.t td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--panel);
+  box-shadow: 1px 0 0 var(--line);
+}
+.tblw table.t td.day:first-child {
+  background: var(--chip);
+}
+.tblw .dtlt.detail thead tr:nth-child(2) th:first-child {
+  position: static;
+  box-shadow: none;
+  background: none;
+}
+.hist tbody tr.m:hover td:first-child {
+  background: var(--chip);
 }

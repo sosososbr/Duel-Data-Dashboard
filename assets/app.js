@@ -105,7 +105,7 @@
   const sgn = (x, d = 2) =>
     x == null || !isFinite(x)
       ? "–"
-      : (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d);
+      : (+(x * 100).toFixed(d) >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d);
   const fmtPt = (x) =>
     (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toLocaleString("ja-JP");
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -2691,17 +2691,63 @@
    ${!r.omSet ? `<p>ベンチマークの環境データに自デッキ（${esc(deck)}）の環境勝率ωがないため50%として扱い、基礎力は0になります。</p>` : ""}
    <p>事故の基準率 先攻 ${pct(r.aF)}・後攻 ${pct(r.aS)}${r.abarTheory ? "（理論値。未設定の側は実績）" : "（同デッキ・同バージョン全期間の実績）"}、事故時勝率 ${pct(r.xB)}、通常時勝率 ${pct(r.xN)}。プレイ力は Tech から構築力を引いた残りです。</p>
   </div>`;
-    const c = (v) => `<td class="${v >= 0 ? "pos" : "neg"}">${sgn(v)}</td>`;
+    // 色の工夫：実シェア＝棒の長さ、勝率＝50%を境に緑／赤の濃淡、Deck・Tech・Luck＝中央から左右に伸びる棒
+    const maxS = Math.max(0.01, ...r.R.map((x) => x.s)),
+      detail = !!UI.dtlDetail,
+      keys = detail
+        ? ["base", "field", "meta", "build", "play", "coin", "brick", "tot"]
+        : ["deck", "tech", "luck", "tot"],
+      maxV = Math.max(
+        0.005,
+        ...keys.map((k) => Math.abs(r[k])),
+        ...r.R.flatMap((x) => keys.map((k) => Math.abs(x[k]))),
+      );
+    const soft = (col, pc) => `color-mix(in srgb, ${col} ${pc}%, transparent)`;
+    const sb = (s) => {
+      const w = (s / maxS) * 100;
+      return `<td class="sbar" style="background:linear-gradient(90deg, ${soft("var(--accent)", 22)} ${w}%, transparent ${w}%)">${pct(s, 0)}</td>`;
+    };
+    const ht = (p, text) =>
+      p == null
+        ? `<td>${text}</td>`
+        : `<td style="background:${soft(p >= 0.5 ? "var(--win)" : "var(--loss)", Math.round(Math.min(1, Math.abs(p - 0.5) / 0.3) * 38))}">${text}</td>`;
+    const db = (v, g1) => {
+      const w = (Math.abs(v) / maxV) * 50,
+        col = soft(v >= 0 ? "var(--win)" : "var(--loss)", 32),
+        a = v >= 0 ? 50 : 50 - w,
+        b = v >= 0 ? 50 + w : 50;
+      return `<td class="${v >= 0 ? "pos" : "neg"}${g1 ? " g1" : ""}" style="background:linear-gradient(90deg, transparent calc(50% - 0.5px), var(--line) calc(50% - 0.5px), var(--line) calc(50% + 0.5px), transparent calc(50% + 0.5px)), linear-gradient(90deg, transparent ${a}%, ${col} ${a}%, ${col} ${b}%, transparent ${b}%)">${sgn(v)}</td>`;
+    };
+    const nn = (n) => `<small style="color:var(--muted)"> (${n})</small>`;
+    const fA = ms.filter((m) => m.first),
+      sA = ms.filter((m) => !m.first),
+      rt = (a) => (a.length ? a.filter((m) => m.win).length / a.length : null);
+    const base7 = [
+      "相手",
+      "試合",
+      "実シェア",
+      "自勝率",
+      "先攻勝率",
+      "後攻勝率",
+      "同デッキ",
+    ];
+    const thead = detail
+      ? `<tr>${base7.map((h) => `<th rowspan="2">${h}</th>`).join("")}<th colspan="3" class="gh g1">Deck</th><th colspan="2" class="gh g1">Tech</th><th colspan="2" class="gh g1">Luck</th><th rowspan="2" class="g1">計</th></tr><tr><th class="sub g1">基礎力</th><th class="sub">環境強度</th><th class="sub">メタ相性</th><th class="sub g1">構築力</th><th class="sub">プレイ力</th><th class="sub g1">先後</th><th class="sub">事故</th></tr>`
+      : `<tr>${base7.map((h) => `<th>${h}</th>`).join("")}<th>Deck</th><th>Tech</th><th>Luck</th><th>計</th></tr>`;
+    const gstart = detail
+      ? new Set(["base", "build", "coin", "tot"])
+      : new Set();
     $("#dtlTable").innerHTML =
-      `<table class="t"><thead><tr><th>相手</th><th>試合</th><th>実シェア</th><th>自勝率</th><th>先攻勝率</th><th>後攻勝率</th><th>同デッキ</th><th>Deck</th><th>Tech</th><th>Luck</th><th>計</th></tr></thead><tbody>
-  ${r.R.map((x) => `<tr><td>${esc(x.n)}</td><td>${x.cnt}</td><td>${pct(x.s, 0)}</td><td>${x.cnt ? pct(x.p, 0) : "–"}</td><td>${x.nF ? `${pct(x.rF, 0)}<small style="color:var(--muted)"> (${x.nF})</small>` : "–"}</td><td>${x.nS ? `${pct(x.rS, 0)}<small style="color:var(--muted)"> (${x.nS})</small>` : "–"}</td><td>${pct(x.q, 0)}${x.qsub ? '<span class="sub-mark">代</span>' : x.est ? '<span class="sub-mark">推</span>' : ""}</td>${c(x.deck)}${c(x.tech)}${c(x.luck)}${c(x.tot)}</tr>`).join("")}
-  <tr class="sum"><td>合計</td><td>${r.N}</td><td>100%</td><td>${pct(r.pbar, 0)}</td><td>${(() => {
-    const a = ms.filter((m) => m.first);
-    return a.length ? pct(a.filter((m) => m.win).length / a.length, 0) : "–";
-  })()}</td><td>${(() => {
-    const a = ms.filter((m) => !m.first);
-    return a.length ? pct(a.filter((m) => m.win).length / a.length, 0) : "–";
-  })()}</td><td></td>${c(r.deck)}${c(r.tech)}${c(r.luck)}${c(r.tot)}</tr></tbody></table>`;
+      `<table class="t dtlt${detail ? " detail" : ""}"><thead>${thead}</thead><tbody>
+  ${r.R.map((x) => `<tr><td>${esc(x.n)}</td><td>${x.cnt}</td>${sb(x.s)}${ht(x.cnt ? x.p : null, x.cnt ? pct(x.p, 0) : "–")}${ht(x.nF ? x.rF : null, x.nF ? pct(x.rF, 0) + nn(x.nF) : "–")}${ht(x.nS ? x.rS : null, x.nS ? pct(x.rS, 0) + nn(x.nS) : "–")}${ht(x.q, pct(x.q, 0) + (x.qsub ? '<span class="sub-mark">代</span>' : x.est ? '<span class="sub-mark">推</span>' : ""))}${keys.map((k) => db(x[k], gstart.has(k))).join("")}</tr>`).join("")}
+  <tr class="sum"><td>合計</td><td>${r.N}</td><td>100%</td>${ht(r.pbar, pct(r.pbar, 0))}${ht(rt(fA), fA.length ? pct(rt(fA), 0) : "–")}${ht(rt(sA), sA.length ? pct(rt(sA), 0) : "–")}<td></td>${keys.map((k) => db(r[k], gstart.has(k))).join("")}</tr></tbody></table>
+  <div class="legend dtlleg"><span><i style="background:${soft("var(--accent)", 30)}"></i>実シェア＝棒の長さ</span><span><i style="background:${soft("var(--win)", 40)}"></i><i style="background:${soft("var(--loss)", 40)}"></i>勝率＝50%より上は緑・下は赤（濃いほど差が大きい）</span><span>Deck・Tech・Luck＝中央の線から右がプラス、左がマイナス</span></div>`;
+    $$("#dtlMode button").forEach((b) =>
+      b.setAttribute(
+        "aria-pressed",
+        String(b.dataset.m === (detail ? "1" : "0")),
+      ),
+    );
     renderBench(r.R.map((x) => x.n));
   }
   let benchDirty = false,
@@ -3556,6 +3602,12 @@
     }),
   );
 
+  $("#dtlMode").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-m]");
+    if (!b) return;
+    UI.dtlDetail = b.dataset.m === "1";
+    renderDTL();
+  });
   /* ---------- サンプルデータ ---------- */
   function startDemo() {
     let s = 11;
