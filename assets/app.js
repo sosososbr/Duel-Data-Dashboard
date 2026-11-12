@@ -210,6 +210,42 @@
           黒魔導: { q: 60 },
         },
       },
+      メメント: {
+        rows: {
+          メメント: { q: 50 },
+          氷水: { q: 51.9 },
+          ホルス: { q: 59.5 },
+          黒魔導: { q: 45.5 },
+          烙印: { q: 73.7 },
+        },
+      },
+      氷水: {
+        rows: {
+          メメント: { q: 48.1 },
+          氷水: { q: 50 },
+          ホルス: { q: 44.4 },
+          黒魔導: { q: 33.3 },
+          烙印: { q: 85.7 },
+        },
+      },
+      黒魔導: {
+        rows: {
+          メメント: { q: 54.5 },
+          氷水: { q: 66.7 },
+          ホルス: { q: 40 },
+          黒魔導: { q: 50 },
+          烙印: { q: 100 },
+        },
+      },
+      烙印: {
+        rows: {
+          メメント: { q: 26.3 },
+          氷水: { q: 14.3 },
+          ホルス: { q: 70 },
+          黒魔導: { q: 0 },
+          烙印: { q: 50 },
+        },
+      },
     },
   };
   const defCfg = () =>
@@ -246,11 +282,19 @@
   function lsLoad() {
     try {
       // 旧版（保存キー "dl-record-v1"）の記録があれば引き継ぐ
-      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      const raw =
+        localStorage.getItem(STORAGE_KEY) ||
+        localStorage.getItem(LEGACY_STORAGE_KEY);
       const r = JSON.parse(raw || "null");
       if (r) {
         REAL.matches = r.matches || [];
         REAL.cfg = Object.assign(defCfg(), r.cfg || {});
+        // 初期データにあって、まだ持っていないデッキのベンチマークだけを補う（自分の入力は上書きしない）
+        REAL.cfg.bench = Object.assign(
+          {},
+          JSON.parse(JSON.stringify(BAKED.bench)),
+          REAL.cfg.bench,
+        );
       }
     } catch (e) {}
   }
@@ -2025,16 +2069,30 @@
     }
     const tot = {};
     ms.forEach((m) => (tot[m.opp] = (tot[m.opp] || 0) + 1));
-    const top = Object.entries(tot)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map((x) => x[0]);
-    const keys = top.concat(
-      Object.keys(tot).length > top.length ? ["その他"] : [],
-    );
-    const col = (k) =>
-      k === "その他" ? "var(--c0)" : `var(--c${top.indexOf(k) + 1})`;
-    const key = (m) => (top.includes(m.opp) ? m.opp : "その他");
+    // 下から順に：ベンチマークの参照シェアが大きいデッキ → それ以外は実戦で初めて当たった順
+    const E = envRows(),
+      share = (n) => (E[n] && num(E[n].b) != null ? num(E[n].b) : -1);
+    const benchDecks = Object.keys(tot)
+      .filter((n) => share(n) >= 0)
+      .sort((a, b) => share(b) - share(a));
+    const restDecks = [];
+    ms.forEach((m) => {
+      if (share(m.opp) < 0 && !restDecks.includes(m.opp)) restDecks.push(m.opp);
+    });
+    const keys = benchDecks.concat(restDecks);
+    const palette = [
+      "var(--c1)",
+      "var(--c2)",
+      "var(--c3)",
+      "var(--c4)",
+      "var(--c5)",
+      "var(--c6)",
+    ];
+    const col = (k) => {
+      const i = keys.indexOf(k);
+      return i < palette.length ? palette[i] : `hsl(${(i * 47) % 360} 45% 55%)`;
+    };
+    const key = (m) => m.opp;
     const pts = ms.map((m, i) => {
       const c = {};
       keys.forEach((k) => (c[k] = 0));
@@ -2139,6 +2197,24 @@
     });
     return o;
   }
+  /**
+   * 使用デッキがベンチマーク外のとき、そのデッキを「その他」とみなした値を逆算する。
+   *   同デッキ勝率 q(その他→X) = 100 − q(X→その他)（X のベンチマークから deriveOther で求めた値）
+   *   環境勝率 ω(その他)       = (50 − Σ b·ω) ÷ b(その他)
+   */
+  function otherProfile() {
+    const E = envRows(),
+      q = {};
+    let omega = null;
+    Object.keys(E).forEach((x) => {
+      const ox = deriveOther(E, qRows(x), num(E[x].omega), x);
+      if (ox && ox.q != null) q[x] = Math.round((100 - ox.q) * 10) / 10;
+      if (ox && ox.omega != null) omega = Math.round(ox.omega * 10) / 10;
+    });
+    return { q, omega };
+  }
+  const isOffBench = (deck) => !!deck && !envRows()[deck];
+
   const OTHER = "その他";
   /**
    * ベンチマークに登録されていないデッキをまとめた「その他」の値を逆算する。
@@ -2223,8 +2299,10 @@
           ? ref.filter((m) => m.brick).length / ref.length
           : B.length / N;
     const E = envRows(),
-      Q = qRows(deck),
-      wMe = E[deck] ? num(E[deck].omega) : null;
+      off = isOffBench(deck),
+      op = off ? otherProfile() : null,
+      Q = off ? Object.assign({}, op.q, qRows(deck)) : qRows(deck),
+      wMe = E[deck] ? num(E[deck].omega) : off ? op.omega : null;
     const omMe = wMe == null ? 0.5 : wMe / 100;
     const od = deriveOther(E, Q, wMe, deck),
       listed = new Set(Object.keys(E).concat(Object.keys(Q)));
@@ -2274,7 +2352,9 @@
         subs.push(n);
       } else q = q / 100;
       const om = num(row.omega);
-      const est = isO && od.q != null;
+      const est =
+        (isO && od.q != null) ||
+        (off && qRows(deck)[n] == null && op.q[n] != null);
       const qhat = sig(logit(omMe) - logit(om == null ? 0.5 : om / 100));
       return {
         n,
@@ -2323,6 +2403,7 @@
       pbar,
       abar,
       abarTheory: theory != null,
+      offBench: off,
       xB,
       xN,
       R,
@@ -2393,6 +2474,7 @@
    ${r.N < 30 ? `<p>試合数が${r.N}戦と少ないため、値は大きくぶれます。30戦以上を目安にしてください。</p>` : ""}
    ${r.subs.length ? `<p>同デッキ勝率が未入力の相手（${r.subs.map(esc).join("、")}）は自分の勝率で代用しています。その分 Tech が0に近づきます。</p>` : ""}
    ${r.od ? `<p>ベンチマークにないデッキ${r.pooled.length ? `（${r.pooled.map(esc).join("、")}）` : ""}は「その他」にまとめ、その他の値は登録デッキから逆算しています。${[r.od.bWhy, r.od.qWhy, r.od.oWhy].filter(Boolean).map(esc).join("。")}</p>` : ""}
+   ${r.offBench ? `<p>使用デッキ（${esc(deck)}）はベンチマークにないため「その他」とみなし、同デッキ勝率と環境勝率を、ほかのデッキのベンチマークから逆算しています（「推」の印）。</p>` : ""}
    ${!r.omSet ? `<p>ベンチマークの環境データに自デッキ（${esc(deck)}）の環境勝率ωがないため50%として扱い、基礎力は0になります。</p>` : ""}
    <p>事故の基準率 ${pct(r.abar)}${r.abarTheory ? "（理論値）" : "（同デッキ・同バージョン全期間の実績）"}、事故時勝率 ${pct(r.xB)}、通常時勝率 ${pct(r.xN)}。プレイ力は Tech から構築力を引いた残りです。</p>
   </div>`;
@@ -2430,7 +2512,8 @@
       : "";
     if (benchDirty) return;
     const E = envRows(),
-      Q = qRows(deck);
+      Q = qRows(deck),
+      op = isOffBench(deck) ? otherProfile() : null;
     const rb = (n) => {
       const v = E[n] ? num(E[n].b) : null;
       return v == null ? -1 : v;
@@ -2452,15 +2535,20 @@
       return;
     }
     const v = (x) => (x == null ? "" : esc(x));
-    const od = deriveOther(E, Q, E[deck] ? num(E[deck].omega) : null, deck),
+    const od = deriveOther(
+        E,
+        op ? Object.assign({}, op.q, Q) : Q,
+        E[deck] ? num(E[deck].omega) : op ? op.omega : null,
+        deck,
+      ),
       f = (x) => (x == null ? "–" : Math.round(x * 10) / 10 + "");
     $("#benchTable").innerHTML =
-      `<table class="t bt"><thead><tr><th></th><th class="gc" colspan="2">環境データ（共通）</th><th class="gm">${deck ? esc(deck) + " 用" : "デッキ別"}</th><th></th></tr>
+      `<table class="t bt"><thead><tr><th></th><th class="gc" colspan="2">環境データ（共通）</th><th class="gm">${deck ? esc(deck) + (op ? " 用（その他として推計）" : " 用") : "デッキ別"}</th><th></th></tr>
   <tr><th>デッキ</th><th>参照シェア%</th><th>環境勝率ω%</th><th>同デッキ勝率%</th><th></th></tr></thead><tbody>${all
     .map((n, i) => {
       const e = E[n] || {},
         self = n === deck;
-      return `<tr data-n="${esc(n)}"${self ? ' class="self"' : ""}><td>${esc(n)}${self ? "<small>自デッキ</small>" : ""}</td><td><input type="number" inputmode="decimal" step="0.1" id="bb${i}" data-k="b" value="${v(e.b)}" placeholder="任意"></td><td><input type="number" inputmode="decimal" step="0.1" id="bo${i}" data-k="omega" value="${v(e.omega)}" placeholder="50"></td><td class="mine"><input type="number" inputmode="decimal" step="0.1" id="bq${i}" data-k="q" value="${v(Q[n])}" placeholder="${self ? "50（ミラー）" : "代用"}"${deck ? "" : " disabled"}></td><td><button class="btn small" data-brm="${esc(n)}" aria-label="${esc(n)}の行を削除">×</button></td></tr>`;
+      return `<tr data-n="${esc(n)}"${self ? ' class="self"' : ""}><td>${esc(n)}${self ? "<small>自デッキ</small>" : ""}</td><td><input type="number" inputmode="decimal" step="0.1" id="bb${i}" data-k="b" value="${v(e.b)}" placeholder="任意"></td><td><input type="number" inputmode="decimal" step="0.1" id="bo${i}" data-k="omega" value="${v(e.omega)}" placeholder="50"></td><td class="mine"><input type="number" inputmode="decimal" step="0.1" id="bq${i}" data-k="q" value="${v(Q[n])}" placeholder="${self ? "50（ミラー）" : op && op.q[n] != null ? "推計 " + op.q[n] : "代用"}"${deck ? "" : " disabled"}></td><td><button class="btn small" data-brm="${esc(n)}" aria-label="${esc(n)}の行を削除">×</button></td></tr>`;
     })
     .join("")}
   ${od ? `<tr><td>その他<span class="sub-mark">推計</span></td><td>${f(od.b)}</td><td>${f(od.omega)}</td><td class="mine">${f(od.q)}</td><td></td></tr><tr><td colspan="5" style="text-align:left;white-space:normal;font-family:var(--f-body);color:var(--muted);font-size:12px">登録していないデッキはまとめて「その他」として扱い、上の行から逆算します（保存後に再計算）。${[od.bWhy, od.oWhy, od.qWhy].filter(Boolean).map(esc).join("。")}</td></tr>` : ""}</tbody></table>`;
