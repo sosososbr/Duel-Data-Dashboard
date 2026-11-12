@@ -24,11 +24,16 @@
     <header class="top">
       <div class="wrap top-in">
         <div class="brand">Duel Data <span>Dashboard</span></div>
-        <a class="spark" id="spark" href="#charts" title="DP推移を開く"></a>
+        <a class="spark" id="spark" href="#charts" title="DP推移を開く"></a
+        ><a class="dtlmini" id="dtlMini" href="#dtl" aria-label="DTL要因分解を開く"></a>
         <div class="mydeck">
           <label for="myDeck">使用デッキ</label
           ><select id="myDeck"></select
-          ><select id="myVer" aria-label="構築バージョン" title="構築バージョン（以降の記録に付きます）"></select>
+          ><select
+            id="myVer"
+            aria-label="構築バージョン"
+            title="構築バージョン（以降の記録に付きます）"
+          ></select>
         </div>
       </div>
       <div class="wrap newdeck" id="newMyRow" hidden>
@@ -55,11 +60,15 @@
           </div>
           <div class="field">
             <div class="lblrow">
-              <span class="lbl">相手デッキ</span><button class="linkbtn" id="oppEdit">候補を編集</button>
+              <span class="lbl">相手デッキ</span
+              ><button class="linkbtn" id="oppEdit">候補を編集</button>
             </div>
             <div class="chips" id="oppChips"></div>
             <div class="inline">
-              <input id="oppNew" type="text" placeholder="新しい相手デッキ" /><button class="btn small" id="oppAdd">
+              <input id="oppNew" type="text" placeholder="新しい相手デッキ" /><button
+                class="btn small"
+                id="oppAdd"
+              >
                 追加
               </button>
             </div>
@@ -94,7 +103,8 @@
             <div class="field">
               <label class="lbl" for="ptIn">DP増減</label>
               <div class="ptbox">
-                <span id="ptSign">±</span><input id="ptIn" inputmode="numeric" placeholder="1000" autocomplete="off" />
+                <span id="ptSign">±</span
+                ><input id="ptIn" inputmode="numeric" placeholder="1000" autocomplete="off" />
               </div>
             </div>
             <div class="field">
@@ -123,7 +133,13 @@
             </div>
             <div class="field">
               <label class="lbl" for="noteIn">メモ</label
-              ><input id="noteIn" type="text" placeholder="任意" autocomplete="off" style="width: 100%" />
+              ><input
+                id="noteIn"
+                type="text"
+                placeholder="任意"
+                autocomplete="off"
+                style="width: 100%"
+              />
             </div>
           </div>
           <details class="more" id="moreBox">
@@ -131,21 +147,45 @@
             <div class="row2">
               <div class="field">
                 <label class="lbl" for="rankIn">順位</label
-                ><input id="rankIn" type="number" inputmode="numeric" placeholder="任意" style="width: 100%" />
+                ><input
+                  id="rankIn"
+                  type="number"
+                  inputmode="numeric"
+                  placeholder="任意"
+                  style="width: 100%"
+                />
               </div>
               <div class="field">
                 <label class="lbl" for="silverIn">銀ライン（100位）</label
-                ><input id="silverIn" type="number" inputmode="numeric" placeholder="任意" style="width: 100%" />
+                ><input
+                  id="silverIn"
+                  type="number"
+                  inputmode="numeric"
+                  placeholder="任意"
+                  style="width: 100%"
+                />
               </div>
             </div>
             <div class="field">
               <label class="lbl" for="dpIn">DP（試合後の実際の値。ずれた時だけ入力）</label
-              ><input id="dpIn" type="number" inputmode="numeric" placeholder="自動" style="width: 100%" />
+              ><input
+                id="dpIn"
+                type="number"
+                inputmode="numeric"
+                placeholder="自動"
+                style="width: 100%"
+              />
             </div>
             <div class="field">
               <label class="lbl" for="tsIn">日時（空欄なら記録時刻）</label>
               <div class="inline" style="margin: 0">
-                <input id="tsIn" type="datetime-local" /><button class="btn small" id="tsNow" type="button">今</button>
+                <input id="tsIn" type="datetime-local" /><button
+                  class="btn small"
+                  id="tsNow"
+                  type="button"
+                >
+                  今
+                </button>
               </div>
             </div>
           </details>
@@ -172,37 +212,65 @@
             <a href="#charts" data-tab="charts"><b>Trend</b>調子</a>
             <a href="#env" data-tab="env"><b>Meta</b>環境</a>
             <a href="#dtl" data-tab="dtl"><b>DTL</b>要因分解</a>
-  <a href="#odds" data-tab="odds"><b>Odds</b>確率</a>
+            <a href="#odds" data-tab="odds"><b>Odds</b>確率</a>
             <a href="#history" data-tab="history"><b>Log</b>戦績</a>
             <a href="#data" data-tab="data"><b>Setup</b>設定</a>
           </div>
         </nav>
         <main>
           <section class="view" id="v-odds" hidden>
-    <div class="card">
-      <div class="card-h"><h2>初手確率</h2><span class="sub">デッキからH枚引いたとき、採用札A・Bを引ける確率</span></div>
-      <div class="oddsin">
-        <label>デッキ枚数 D<input id="oddD" type="number" inputmode="numeric" min="1" max="60"></label>
-        <label>引く枚数 H<input id="oddH" type="number" inputmode="numeric" min="0"></label>
-        <label>採用札 A の枚数<input id="oddA" type="number" inputmode="numeric" min="0"></label>
-        <label>採用札 B の枚数<input id="oddB" type="number" inputmode="numeric" min="0"></label>
-      </div>
-      <div class="tiles" id="oddsOut"></div>
-      <div class="hint" id="oddsTarget"></div>
-    </div>
-    <div class="card">
-      <div class="card-h"><h2>確率の推移</h2><span class="sub">1つの値だけを変えたとき</span>
-        <div class="seg mini" id="oddsAxis" style="margin-left:auto"><button data-x="D">D</button><button data-x="H">H</button><button data-x="A">A</button><button data-x="B">B</button></div></div>
-      <div class="legend"><span><i style="background:var(--accent)"></i>Aを1枚以上</span><span><i style="background:var(--c2)"></i>AかB</span><span><i style="background:var(--c3)"></i>AとB</span><span>縦の点線＝今の値</span></div>
-      <div class="chart" id="oddsChart"></div>
-      <div class="notes">
-        <p>計算は超幾何分布です。A・Bは別々のカードとして扱います。P(A≥1) = 1 − C(D−A, H) ÷ C(D, H)、P(AかB) = 1 − C(D−A−B, H) ÷ C(D, H)、P(AとB) = 1 − [C(D−A, H) + C(D−B, H) − C(D−A−B, H)] ÷ C(D, H)。</p>
-        <p>「事故率に反映」は、選んだ条件を初動の成立条件とみなし、引けない確率を事故率の理論値として使用デッキ・バージョンに保存します。DTLの事故効果の基準 ā に使われます。</p>
-      </div>
-    </div>
-  </section>
+            <div class="card">
+              <div class="card-h">
+                <h2>初手確率</h2>
+                <span class="sub">デッキからH枚引いたとき、採用札A・Bを引ける確率</span>
+              </div>
+              <div class="oddsin">
+                <label
+                  >デッキ枚数 D<input id="oddD" type="number" inputmode="numeric" min="1" max="60"
+                /></label>
+                <label
+                  >引く枚数 H<input id="oddH" type="number" inputmode="numeric" min="0"
+                /></label>
+                <label
+                  >採用札 A の枚数<input id="oddA" type="number" inputmode="numeric" min="0"
+                /></label>
+                <label
+                  >採用札 B の枚数<input id="oddB" type="number" inputmode="numeric" min="0"
+                /></label>
+              </div>
+              <div class="tiles" id="oddsOut"></div>
+              <div class="hint" id="oddsTarget"></div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <h2>確率の推移</h2>
+                <span class="sub">1つの値だけを変えたとき</span>
+                <div class="seg mini" id="oddsAxis" style="margin-left: auto">
+                  <button data-x="D">D</button><button data-x="H">H</button
+                  ><button data-x="A">A</button><button data-x="B">B</button>
+                </div>
+              </div>
+              <div class="legend">
+                <span><i style="background: var(--accent)"></i>Aを1枚以上</span
+                ><span><i style="background: var(--c2)"></i>AかB</span
+                ><span><i style="background: var(--c3)"></i>AとB</span><span>縦の点線＝今の値</span>
+              </div>
+              <div class="chart" id="oddsChart"></div>
+              <div class="notes">
+                <p>
+                  計算は超幾何分布です。A・Bは別々のカードとして扱います。P(A≥1) = 1 − C(D−A, H) ÷
+                  C(D, H)、P(AかB) = 1 − C(D−A−B, H) ÷ C(D, H)、P(AとB) = 1 − [C(D−A, H) + C(D−B, H)
+                  − C(D−A−B, H)] ÷ C(D, H)。
+                </p>
+                <p>
+                  「事故率に反映」は、選んだ条件を初動の成立条件とみなし、引けない確率を事故率の理論値として使用デッキ・バージョンに保存します。DTLの事故効果の基準
+                  ā に使われます。
+                </p>
+              </div>
+            </div>
+          </section>
 
-  <section class="view" id="v-history" hidden>
+          <section class="view" id="v-history" hidden>
             <div class="filters" data-filters></div>
             <div class="card">
               <div class="card-h"><h2>先後・事故・プレミ</h2></div>
@@ -241,11 +309,28 @@
               </div>
               <div class="legend">
                 <span><i style="background: var(--accent)"></i>DP</span
-                ><span><i style="background: var(--c2)"></i>移動平均（5戦）</span
+                ><span
+                  ><i style="background: var(--c2)"></i>移動平均（<input
+                    class="pn"
+                    id="maNIn"
+                    type="number"
+                    inputmode="numeric"
+                    min="2"
+                    max="50"
+                    aria-label="移動平均の試合数"
+                  />戦）</span
                 ><span><i style="background: var(--silver)"></i>銀ライン</span
                 ><span
                   ><i style="background: var(--c2); opacity: 0.45"></i
-                  ><i style="background: var(--c2); opacity: 0.2"></i>BB（10戦, ±1σ・2σ）</span
+                  ><i style="background: var(--c2); opacity: 0.2"></i>BB（<input
+                    class="pn"
+                    id="bbNIn"
+                    type="number"
+                    inputmode="numeric"
+                    min="3"
+                    max="50"
+                    aria-label="BBの試合数"
+                  />戦, ±1σ・2σ）</span
                 >
               </div>
               <div class="pair">
@@ -254,7 +339,8 @@
                   <b>MACD</b><span class="lg"><i style="background: var(--accent)"></i>MACD</span
                   ><span class="lg"><i style="background: var(--c2)"></i>シグナル</span
                   ><span class="lg"
-                    ><i style="background: var(--win)"></i><i style="background: var(--loss)"></i>差</span
+                    ><i style="background: var(--win)"></i
+                    ><i style="background: var(--loss)"></i>差</span
                   ><span class="ms" id="macdSub"></span>
                   <div class="seg mini" id="macdSeg"></div>
                 </div>
@@ -265,7 +351,9 @@
             <div class="card">
               <div class="card-h">
                 <h2>連続プレイと勝率</h2>
-                <span class="sub">1時間に3戦以上続けた対戦を「連続」とみなし、その何戦目かで勝率を比べます</span>
+                <span class="sub"
+                  >1時間に3戦以上続けた対戦を「連続」とみなし、その何戦目かで勝率を比べます</span
+                >
               </div>
               <div class="verdict" id="fatVerdict"></div>
               <div class="wr" id="chFat"></div>
@@ -301,6 +389,18 @@
                 <h2>順位帯ごとの相手デッキ</h2>
                 <span class="sub">記録した順位は、次の記録まで（最長3時間）引き継ぎます</span>
               </div>
+              <div class="rankcfg">
+                <label for="rankBandIn">区切りの順位</label
+                ><input
+                  id="rankBandIn"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="例：100, 300, 1000, 3000"
+                /><span class="seg mini" id="rankPresets"
+                  ><button data-p="上位">上位向け</button><button data-p="標準">標準</button
+                  ><button data-p="中位">中位向け</button></span
+                >
+              </div>
               <div class="rs" id="chRank"></div>
               <div class="legend" id="rankLegend"></div>
             </div>
@@ -308,7 +408,8 @@
               <div class="card-h"><h2>相手デッキ別の勝率</h2></div>
               <div class="legend">
                 <span><i style="background: var(--accent)"></i>勝率</span
-                ><span><i style="background: var(--accent-soft)"></i>95%信頼区間</span><span>縦線＝50%</span>
+                ><span><i style="background: var(--accent-soft)"></i>95%信頼区間</span
+                ><span>縦線＝50%</span>
               </div>
               <div class="wr" id="chWr"></div>
             </div>
@@ -339,17 +440,34 @@
                   >同デッキ勝率（色付きの列）だけは、使用デッキごとに入力します。同じデッキの使い手のその対面での勝率です。空欄は自分の勝率で代用し、ミラーは50%として扱います。
                 </p>
               </div>
-              <div class="kv brickrow"><label for="brickIn">事故率の基準値（理論値）%<small id="brickLabel"></small></label><input id="brickIn" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="空欄＝実績から計算"></div>
-      <div class="hint" style="margin-top:-6px">Oddsタブの「事故率に反映」でも入力できます。DTLの事故効果の基準 ā に使います。</div>
-      <div class="tblw" id="benchTable"></div>
+              <div class="kv brickrow">
+                <label for="brickIn">事故率の基準値（理論値）%<small id="brickLabel"></small></label
+                ><input
+                  id="brickIn"
+                  type="number"
+                  inputmode="decimal"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  placeholder="空欄＝実績から計算"
+                />
+              </div>
+              <div class="hint" style="margin-top: -6px">
+                Oddsタブの「事故率に反映」でも入力できます。DTLの事故効果の基準 ā に使います。
+              </div>
+              <div class="tblw" id="benchTable"></div>
               <div class="inline" style="margin-top: 0">
-                <input id="benchNew" type="text" list="benchList" placeholder="デッキを追加（未対戦でも可）" /><datalist
-                  id="benchList"
-                ></datalist
+                <input
+                  id="benchNew"
+                  type="text"
+                  list="benchList"
+                  placeholder="デッキを追加（未対戦でも可）"
+                /><datalist id="benchList"></datalist
                 ><button class="btn small" id="benchAdd">行を追加</button>
               </div>
               <div class="actions">
-                <button class="btn" id="benchSave">ベンチマークを保存</button><span class="conn" id="benchMsg"></span>
+                <button class="btn" id="benchSave">ベンチマークを保存</button
+                ><span class="conn" id="benchMsg"></span>
               </div>
             </div>
             <div class="card model">
@@ -398,7 +516,9 @@
                   <tr>
                     <td>　構築力</td>
                     <td class="fx">Σ s(p − p通常)</td>
-                    <td class="tx">対面ごとの「全試合の勝率」と「構築フラグのない試合の勝率」の差</td>
+                    <td class="tx">
+                      対面ごとの「全試合の勝率」と「構築フラグのない試合の勝率」の差
+                    </td>
                   </tr>
                   <tr>
                     <td>　プレイ力</td>
@@ -432,22 +552,26 @@
                   対面ごとの先攻・後攻勝率は、試合数が少ないと極端になるため、全体の先攻・後攻勝率に2試合分寄せて使います（ベイズ縮小）。事故時・通常時の勝率も同様です。
                 </li>
                 <li>
-                  Tech は「合計 − Deck − Luck」で求めるため、Deck + Tech + Luck は常に「勝率 − 50%」と一致します。
+                  Tech は「合計 − Deck − Luck」で求めるため、Deck + Tech + Luck は常に「勝率 −
+                  50%」と一致します。
                 </li>
                 <li>
                   同デッキ勝率が未入力の対面は、自分の勝率で代用します（その対面の Tech
                   は0に近づきます）。環境勝率ωが未入力なら50%として扱います。ωと同デッキ勝率の出典が食い違う分は、メタ相性に入ります。
                 </li>
                 <li>
-                  ベンチマークにないデッキは「その他」にまとめます。その他のシェアは 100% − 登録シェア合計、ω は Σ b·ω =
-                  50%、同デッキ勝率は ω自分 = Σ b·q の関係から逆算します（5〜95%で丸め）。
+                  ベンチマークにないデッキは「その他」にまとめます。その他のシェアは 100% −
+                  登録シェア合計、ω は Σ b·ω = 50%、同デッキ勝率は ω自分 = Σ b·q
+                  の関係から逆算します（5〜95%で丸め）。
                 </li>
                 <li>
                   構築力は、フラグ付きの試合を「普通の構築なら、その対面の通常の勝率どおりだった」とみなした差です。式を変形すると
                   Σ（フラグ付き試合の結果 − その対面の通常勝率）÷ N になり、構築で勝った試合は 1 −
                   通常勝率、構築で負けた試合は −通常勝率 だけ寄与します。
                 </li>
-                <li>通常の勝率は、試合数が少ないと不安定なため、全体の通常勝率に2試合分寄せて使います。</li>
+                <li>
+                  通常の勝率は、試合数が少ないと不安定なため、全体の通常勝率に2試合分寄せて使います。
+                </li>
                 <li>事故した試合には構築フラグを付けません（事故効果との二重計上を防ぐため）。</li>
               </ul>
             </div>
@@ -466,7 +590,10 @@
               <h2>デッキ候補</h2>
               <div class="decklist" id="deckList"></div>
               <div class="inline" style="margin-top: 0">
-                <input id="deckNew" type="text" placeholder="デッキ名を追加" /><button class="btn small" id="deckAdd">
+                <input id="deckNew" type="text" placeholder="デッキ名を追加" /><button
+                  class="btn small"
+                  id="deckAdd"
+                >
                   追加
                 </button>
               </div>
@@ -481,7 +608,10 @@
               </div>
               <div class="charlist" id="charListEd"></div>
               <div class="inline" style="margin-top: 0">
-                <input id="charNew" type="text" placeholder="キャラ名を追加" /><button class="btn small" id="charAdd">
+                <input id="charNew" type="text" placeholder="キャラ名を追加" /><button
+                  class="btn small"
+                  id="charAdd"
+                >
                   追加
                 </button>
               </div>

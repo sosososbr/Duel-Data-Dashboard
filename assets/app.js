@@ -35,14 +35,10 @@
           "'": "&#39;",
         })[c],
     );
-  const pct = (x, d = 1) =>
-    x == null || !isFinite(x) ? "–" : (x * 100).toFixed(d) + "%";
+  const pct = (x, d = 1) => (x == null || !isFinite(x) ? "–" : (x * 100).toFixed(d) + "%");
   const sgn = (x, d = 2) =>
-    x == null || !isFinite(x)
-      ? "–"
-      : (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d);
-  const fmtPt = (x) =>
-    (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toLocaleString("ja-JP");
+    x == null || !isFinite(x) ? "–" : (x >= 0 ? "+" : "−") + Math.abs(x * 100).toFixed(d);
+  const fmtPt = (x) => (x > 0 ? "+" : x < 0 ? "−" : "±") + Math.abs(x).toLocaleString("ja-JP");
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
   const toLocalInput = (ts) => {
     const d = new Date(ts);
@@ -282,19 +278,13 @@
   function lsLoad() {
     try {
       // 旧版（保存キー "dl-record-v1"）の記録があれば引き継ぐ
-      const raw =
-        localStorage.getItem(STORAGE_KEY) ||
-        localStorage.getItem(LEGACY_STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
       const r = JSON.parse(raw || "null");
       if (r) {
         REAL.matches = r.matches || [];
         REAL.cfg = Object.assign(defCfg(), r.cfg || {});
         // 初期データにあって、まだ持っていないデッキのベンチマークだけを補う（自分の入力は上書きしない）
-        REAL.cfg.bench = Object.assign(
-          {},
-          JSON.parse(JSON.stringify(BAKED.bench)),
-          REAL.cfg.bench,
-        );
+        REAL.cfg.bench = Object.assign({}, JSON.parse(JSON.stringify(BAKED.bench)), REAL.cfg.bench);
       }
     } catch (e) {}
   }
@@ -392,14 +382,12 @@
     if (FS.supported) {
       try {
         FS.handle = (await IDB.get("saveHandle")) || null;
-        if (FS.handle)
-          FS.perm = await FS.handle.queryPermission({ mode: "readwrite" });
+        if (FS.handle) FS.perm = await FS.handle.queryPermission({ mode: "readwrite" });
       } catch (e) {
         FS.handle = null;
       }
     }
-    if (FS.handle && FS.perm === "granted" && !REAL.matches.length)
-      await fileRestore(true);
+    if (FS.handle && FS.perm === "granted" && !REAL.matches.length) await fileRestore(true);
     renderFileInfo();
     render();
   }
@@ -411,11 +399,7 @@
       }
       const d = JSON.parse(await (await FS.handle.getFile()).text());
       if (!Array.isArray(d.matches)) throw 0;
-      if (
-        REAL.matches.length &&
-        !silent &&
-        $("#fileRestore").dataset.armed !== "1"
-      ) {
+      if (REAL.matches.length && !silent && $("#fileRestore").dataset.armed !== "1") {
         $("#fileRestore").dataset.armed = "1";
         $("#fileRestore").textContent = "もう一度押すとファイルの内容で上書き";
         return;
@@ -463,9 +447,7 @@
     try {
       const h = await window.showSaveFilePicker({
         suggestedName: "duel-data.json",
-        types: [
-          { description: "JSON", accept: { "application/json": [".json"] } },
-        ],
+        types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
       });
       FS.handle = h;
       FS.perm = "granted";
@@ -489,10 +471,7 @@
   /* ---------- バックアップの催促 ---------- */
   function markBackup() {
     try {
-      localStorage.setItem(
-        BACKUP_KEY,
-        JSON.stringify({ n: REAL.matches.length, ts: Date.now() }),
-      );
+      localStorage.setItem(BACKUP_KEY, JSON.stringify({ n: REAL.matches.length, ts: Date.now() }));
     } catch (e) {}
   }
   function backupDue() {
@@ -588,8 +567,7 @@
     let ms = D().matches;
     if (UI.scope === "deck" && cfg().myDeck) {
       ms = ms.filter((m) => m.my === cfg().myDeck);
-      if (UI.ver && UI.ver !== "all")
-        ms = ms.filter((m) => (m.ver || "") === UI.ver);
+      if (UI.ver && UI.ver !== "all") ms = ms.filter((m) => (m.ver || "") === UI.ver);
     }
     if (UI.range === "today") {
       const d = new Date();
@@ -674,17 +652,12 @@
       sel = $("#myDeck");
     const opts = ['<option value="">（未設定）</option>'].concat(
       c.decks.map(
-        (d) =>
-          `<option value="${esc(d)}"${d === c.myDeck ? " selected" : ""}>${esc(d)}</option>`,
+        (d) => `<option value="${esc(d)}"${d === c.myDeck ? " selected" : ""}>${esc(d)}</option>`,
       ),
     );
     opts.push('<option value="__new">＋ 新しいデッキ…</option>');
     if (c.myDeck && !c.decks.includes(c.myDeck))
-      opts.splice(
-        1,
-        0,
-        `<option value="${esc(c.myDeck)}" selected>${esc(c.myDeck)}</option>`,
-      );
+      opts.splice(1, 0, `<option value="${esc(c.myDeck)}" selected>${esc(c.myDeck)}</option>`);
     sel.innerHTML = opts.join("");
     sel.value = c.myDeck || "";
     const vs = $("#myVer"),
@@ -712,10 +685,7 @@
       ["DP", curPt().toLocaleString("ja-JP")],
     ];
     $("#stats").innerHTML = items
-      .map(
-        ([k, v]) =>
-          `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`,
-      )
+      .map(([k, v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`)
       .join("");
     const b = $("#banner");
     if (DEMO)
@@ -726,6 +696,7 @@
       b.innerHTML = `<div class="banner"><div class="wrap">前回のバックアップから${d.since}戦記録しています。JSONで書き出しておくと安心です。<button class="btn small" id="bkNow">今すぐ書き出す</button><button class="btn small" id="bkLater">あとで</button></div></div>`;
     } else b.innerHTML = "";
     renderSpark();
+    renderDtlMini();
     const bk = $("#bkNow");
     if (bk) bk.onclick = () => $("#expJson").click();
     const bl = $("#bkLater");
@@ -818,9 +789,7 @@
     const names = cfg().decks.slice();
     if (F.opp && !names.includes(F.opp)) names.push(F.opp);
     return names
-      .sort(
-        (a, b) => (last[b] || 0) - (last[a] || 0) || a.localeCompare(b, "ja"),
-      )
+      .sort((a, b) => (last[b] || 0) - (last[a] || 0) || a.localeCompare(b, "ja"))
       .map((n) => ({ n, c: cnt[n] || 0 }));
   }
   function renderForm() {
@@ -845,8 +814,7 @@
     const tb = $("#tgBuild");
     tb.setAttribute("aria-pressed", F.build !== 0);
     tb.disabled = F.win === null || F.brick;
-    tb.textContent =
-      F.win === true ? "構築で勝ち" : F.win === false ? "構築で負け" : "構築";
+    tb.textContent = F.win === true ? "構築で勝ち" : F.win === false ? "構築で負け" : "構築";
     tb.title = "自分の構築（採用カードや型）が勝敗に効いた試合で押します";
     $("#buildHint").hidden = !F.brick;
     $("#buildHint").textContent = "事故した試合は構築フラグを付けません";
@@ -856,20 +824,15 @@
       if (m.char) used[m.char] = m.ts;
       if (m.player) pl[m.player] = m.ts;
     });
-    const chars = Array.from(
-      new Set((cfg().chars || []).concat(Object.keys(used))),
-    );
-    $("#charList").innerHTML = chars
-      .map((c) => `<option value="${esc(c)}"></option>`)
-      .join("");
+    const chars = Array.from(new Set((cfg().chars || []).concat(Object.keys(used))));
+    $("#charList").innerHTML = chars.map((c) => `<option value="${esc(c)}"></option>`).join("");
     $("#playerList").innerHTML = Object.keys(pl)
       .sort((a, b) => pl[b] - pl[a])
       .map((c) => `<option value="${esc(c)}"></option>`)
       .join("");
     const lastOf = (k) => {
       const a = D().matches;
-      for (let i = a.length - 1; i >= 0; i--)
-        if (a[i][k] != null && a[i][k] !== "") return a[i];
+      for (let i = a.length - 1; i >= 0; i--) if (a[i][k] != null && a[i][k] !== "") return a[i];
       return null;
     };
     const lr = lastOf("rank"),
@@ -877,12 +840,8 @@
     $("#dpIn").placeholder = F.id
       ? "自動（前の試合から計算）"
       : `自動（この試合後 ${(curPt() + (F.win === null ? 0 : (F.win ? 1 : -1) * (Number(($("#ptIn").value || "").replace(/[^\d.]/g, "")) || DEFAULT_DP_CHANGE))).toLocaleString("ja-JP")}）`;
-    $("#rankIn").placeholder = lr
-      ? `前回 ${lr.rank}（${fmtT(lr.ts)}）`
-      : "任意";
-    $("#silverIn").placeholder = ls
-      ? `前回 ${ls.silver}（${fmtT(ls.ts)}）`
-      : "任意";
+    $("#rankIn").placeholder = lr ? `前回 ${lr.rank}（${fmtT(lr.ts)}）` : "任意";
+    $("#silverIn").placeholder = ls ? `前回 ${ls.silver}（${fmtT(ls.ts)}）` : "任意";
     const editing = !!F.id;
     $("#formTitle").textContent = editing ? "記録を編集" : "対戦を記録";
     const cur = renderFatigueWarn();
@@ -900,9 +859,7 @@
     }
   }
   function setSeg(sel, val) {
-    $$(sel + " button").forEach((b) =>
-      b.setAttribute("aria-pressed", b.dataset.v === val),
-    );
+    $$(sel + " button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.v === val));
   }
   $("#oppChips").addEventListener("click", (e) => {
     const b = e.target.closest(".chip");
@@ -1019,9 +976,7 @@
       return;
     }
     const m = {
-      id:
-        F.id ||
-        "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      id: F.id || "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       ts: tsIn != null ? tsIn : prev ? prev.ts : Date.now(),
       my: prev ? prev.my : cfg().myDeck,
       ver: prev ? prev.ver : curVer(),
@@ -1097,9 +1052,7 @@
       (m.brick ? '<span class="tag b">事故</span>' : "") +
       (m.oppBrick ? '<span class="tag ob">相手事故</span>' : "") +
       (m.miss ? '<span class="tag b">プレミ</span>' : "") +
-      (buildTag(m.build)
-        ? `<span class="tag k">${buildTag(m.build)}</span>`
-        : "");
+      (buildTag(m.build) ? `<span class="tag k">${buildTag(m.build)}</span>` : "");
     return `<button class="mrow${m.id === F.id ? " editing" : ""}" data-id="${esc(m.id)}"><span class="res ${m.win ? "w" : "l"}">${m.win ? "WIN" : "LOSE"}</span><span class="fs${m.first ? " f" : ""}">${m.first ? "先" : "後"}</span><span class="opp">${esc(m.opp)}${tags}${m.char || m.player ? `<small>${esc([m.char, m.player].filter(Boolean).join(" / "))}</small>` : ""}${m.note ? `<small>${esc(m.note)}</small>` : ""}</span><span class="r"><b>${fmtPt(Number(m.pt) || 0)}</b>${t}</span></button>`;
   }
   function renderRecent() {
@@ -1143,16 +1096,11 @@
     $("#dpIn").value = m.dp == null ? "" : m.dp;
     if (m.dp != null) $("#moreBox").open = true;
     clearErr();
-    if (m.rank != null || m.silver != null || m.dp != null)
-      $("#moreBox").open = true;
+    if (m.rank != null || m.silver != null || m.dp != null) $("#moreBox").open = true;
     if (!isWide() && UI.view !== "input") {
       location.hash = "input";
     } else render();
-    setTimeout(
-      () =>
-        $("#formCard").scrollIntoView({ behavior: "smooth", block: "start" }),
-      30,
-    );
+    setTimeout(() => $("#formCard").scrollIntoView({ behavior: "smooth", block: "start" }), 30);
   }
   $("#recent").addEventListener("click", (e) => {
     const b = e.target.closest(".mrow");
@@ -1166,9 +1114,7 @@
       (by[m.player] = by[m.player] || []).push(m);
     });
     const el = $("#playerTable"),
-      rows = Object.entries(by).sort(
-        (a, b) => b[1][b[1].length - 1].ts - a[1][a[1].length - 1].ts,
-      );
+      rows = Object.entries(by).sort((a, b) => b[1][b[1].length - 1].ts - a[1][a[1].length - 1].ts);
     if (!rows.length) {
       el.innerHTML =
         '<div class="empty">入力パネルで相手プレイヤーを入れると、ここに一覧が出ます。</div>';
@@ -1290,10 +1236,7 @@
   /** 目盛り用の「キリの良い」刻み幅（1・2・5 × 10^n）を返す。 */
   function niceStep(range, minStep, maxTicks) {
     if (!(range > 0)) return minStep;
-    let mag = Math.pow(
-      10,
-      Math.floor(Math.log10(Math.max(minStep, range / maxTicks))),
-    );
+    let mag = Math.pow(10, Math.floor(Math.log10(Math.max(minStep, range / maxTicks))));
     for (;;) {
       for (const m of [1, 2, 5]) {
         const st = m * mag;
@@ -1315,9 +1258,7 @@
     }
     const v2 = opt.v2 || [],
       v3 = (opt.v3 || []).filter((v) => v != null),
-      bd = (opt.bands || [])
-        .reduce((a, b) => a.concat(b.hi, b.lo), [])
-        .filter((v) => v != null);
+      bd = (opt.bands || []).reduce((a, b) => a.concat(b.hi, b.lo), []).filter((v) => v != null);
     let lo = Math.min(...vals, ...v2, ...v3, ...bd),
       hi = Math.max(...vals, ...v2, ...v3, ...bd);
     if (opt.min != null) lo = Math.min(lo, opt.min);
@@ -1329,11 +1270,12 @@
       ticks = opt.ticks;
     } else {
       const st = niceStep(hi - lo, opt.minStep || 1, 5);
-      lo = Math.floor(lo / st) * st;
-      hi = Math.ceil(hi / st) * st;
-      if (hi === lo) hi += st;
+      // 軸の範囲はデータに合わせ（上下に少し余白）、目盛りだけキリの良い値に置く
+      const pad = (hi - lo) * 0.06 || st / 2;
+      lo -= pad;
+      hi += pad;
       ticks = [];
-      for (let v = lo; v <= hi + st / 2; v += st) ticks.push(v);
+      for (let v = Math.ceil(lo / st) * st; v <= hi; v += st) ticks.push(v);
     }
     const X = (i) => pl + ((w - pl - pr) * i) / (vals.length - 1),
       Y = (v) => pt + (h - pt - pb) * (1 - (v - lo) / (hi - lo));
@@ -1351,10 +1293,7 @@
           idx = H.map((v, i) => i).filter((i) => H[i] != null);
         if (idx.length > 1) {
           const up = idx
-              .map(
-                (i, k) =>
-                  (k ? "L" : "M") + X(i).toFixed(1) + " " + Y(H[i]).toFixed(1),
-              )
+              .map((i, k) => (k ? "L" : "M") + X(i).toFixed(1) + " " + Y(H[i]).toFixed(1))
               .join(" "),
             dn = idx
               .slice()
@@ -1369,9 +1308,7 @@
     s += `<path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
     if (v2.length > 1) {
       const d2 = v2
-        .map(
-          (v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1),
-        )
+        .map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1))
         .join(" ");
       s += `<path class="dash" d="${d2}" fill="none" stroke="var(--c2)" stroke-width="2"/>`;
     }
@@ -1389,19 +1326,14 @@
         else d3 += `L${x} ${Y(prev).toFixed(1)} L${x} ${y} `;
         prev = v;
       });
-      if (d3)
-        s += `<path d="${d3}" fill="none" stroke="var(--silver)" stroke-width="2"/>`;
+      if (d3) s += `<path d="${d3}" fill="none" stroke="var(--silver)" stroke-width="2"/>`;
     }
     const li = vals.length - 1;
     s += `<circle cx="${X(li)}" cy="${Y(vals[li])}" r="4" fill="var(--accent)"/>`;
     const x0 = opt.x0 || 0,
       n = vals.length,
       xs = niceStep(n - 1, 1, 6);
-    for (
-      let v = Math.ceil(x0 / xs) * xs;
-      !opt.noX && v <= x0 + n - 1;
-      v += xs
-    ) {
+    for (let v = Math.ceil(x0 / xs) * xs; !opt.noX && v <= x0 + n - 1; v += xs) {
       const x = X(v - x0);
       const anc = x < pl + 12 ? "start" : x > w - pr - 12 ? "end" : "middle";
       s += `<line x1="${x}" x2="${x}" y1="${h - pb}" y2="${h - pb + 4}" stroke="var(--line)"/><text x="${x}" y="${h - 6}" text-anchor="${anc}">${v}</text>`;
@@ -1419,10 +1351,8 @@
     for (let i = 1; i < ms.length; i++) {
       const a = ms[i - 1],
         b = ms[i];
-      if (a.my !== b.my)
-        out.push({ i: i + offset, label: b.my + (b.ver ? " " + b.ver : "") });
-      else if ((a.ver || "") !== (b.ver || ""))
-        out.push({ i: i + offset, label: b.ver || "-" });
+      if (a.my !== b.my) out.push({ i: i + offset, label: b.my + (b.ver ? " " + b.ver : "") });
+      else if ((a.ver || "") !== (b.ver || "")) out.push({ i: i + offset, label: b.ver || "-" });
     }
     return out;
   }
@@ -1474,7 +1404,7 @@
       n = mv.length,
       N = vals.length;
     const w = Math.max(260, el.clientWidth || 600),
-      h = 130,
+      h = 90,
       pl = 46,
       pr = 10,
       pt = 6,
@@ -1494,15 +1424,11 @@
     hv.forEach((v, i) => {
       const y0 = Y(0),
         y1 = Y(v);
-      s += `<rect x="${X(i) - bw / 2}" y="${Math.min(y0, y1)}" width="${bw}" height="${Math.max(0.5, Math.abs(y1 - y0))}" fill="${v >= 0 ? "var(--win)" : "var(--loss)"}" fill-opacity=".55"/>`;
+      s += `<rect x="${X(i) - bw / 2}" y="${Math.min(y0, y1)}" width="${bw}" height="${Math.max(0.5, Math.abs(y1 - y0))}" fill="${v >= 0 ? "var(--win)" : "var(--loss)"}" fill-opacity=".3"/>`;
     });
     const path = (a) =>
-      a
-        .map(
-          (v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1),
-        )
-        .join(" ");
-    s += `<path d="${path(sv)}" fill="none" stroke="var(--c2)" stroke-width="1.6"/><path d="${path(mv)}" fill="none" stroke="var(--accent)" stroke-width="2"/>`;
+      a.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
+    s += `<path d="${path(sv)}" fill="none" stroke="var(--c2)" stroke-width="1.2" stroke-opacity=".7"/><path d="${path(mv)}" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-opacity=".75"/>`;
     (marks || []).forEach((mk) => {
       const i = mk.i - st;
       if (i < 0 || i >= n) return;
@@ -1526,6 +1452,28 @@
       grow = n > 1 && Math.abs(hv[n - 1]) > Math.abs(hv[n - 2]);
     return { now, grow, last };
   }
+  /** 移動平均・ボリンジャーバンドの計算期間（戦）。設定で変えられる。 */
+  const maN = () => clamp(Math.round(Number(cfg().maN) || 5), 2, 50);
+  const bbN = () => clamp(Math.round(Number(cfg().bbN) || 10), 3, 50);
+  function bindPeriodInputs() {
+    [
+      ["#maNIn", "maN"],
+      ["#bbNIn", "bbN"],
+    ].forEach(([id, key]) => {
+      const el = $(id);
+      if (document.activeElement !== el) el.value = key === "maN" ? maN() : bbN();
+    });
+  }
+  [
+    ["#maNIn", "maN"],
+    ["#bbNIn", "bbN"],
+  ].forEach(([id, key]) =>
+    $(id).addEventListener("change", (e) => {
+      const v = Math.round(Number(e.target.value));
+      cfg()[key] = v > 0 ? v : null;
+      saveCfg();
+    }),
+  );
   function dpSeries(ms) {
     const all = D().matches,
       cum = dpCum().arr;
@@ -1562,10 +1510,35 @@
     });
     if (ptv.length) sv = [firstSv].concat(sv);
     const ma = ptv.map((v, i) => {
-      const a = ptv.slice(Math.max(0, i - 4), i + 1);
+      const a = ptv.slice(Math.max(0, i - (maN() - 1)), i + 1);
       return a.reduce((x, y) => x + y, 0) / a.length;
     });
     return { ptv, sv, ma, last, lastRank };
+  }
+  /** 上部の小さな DTL 表示（Deck / Tech / Luck の3本の横棒）。 */
+  function renderDtlMini() {
+    const el = $("#dtlMini"),
+      deck = cfg().myDeck;
+    let ms = windowMatches();
+    if (UI.scope === "all" && deck) ms = ms.filter((m) => m.my === deck);
+    const r = deck && ms.length ? computeDTL(ms, deck) : null;
+    if (!r) {
+      el.innerHTML = "";
+      return;
+    }
+    const rows = [
+      ["D", r.deck],
+      ["T", r.tech],
+      ["L", r.luck],
+    ];
+    const max = Math.max(0.05, ...rows.map((x) => Math.abs(x[1])));
+    el.innerHTML = rows
+      .map(([k, v]) => {
+        const w = (Math.abs(v) / max) * 50;
+        return `<span class="dm-k">${k}</span><span class="dm-t"><i class="${v >= 0 ? "p" : "n"}" style="left:${v >= 0 ? 50 : 50 - w}%;width:${w}%"></i></span><span class="dm-v ${v >= 0 ? "p" : "n"}">${sgn(v, 1)}</span>`;
+      })
+      .join("");
+    el.title = `DTL要因分解（${r.N}戦）：Deck ${sgn(r.deck)} / Tech ${sgn(r.tech)} / Luck ${sgn(r.luck)} pt`;
   }
   function renderSpark() {
     const el = $("#spark");
@@ -1577,7 +1550,7 @@
       el.innerHTML = "";
       return;
     }
-    const svv = sv.filter((v) => v != null);
+    const svv = [];
     let lo = Math.min(...ptv, ...ma, ...svv),
       hi = Math.max(...ptv, ...ma, ...svv);
     const st = niceStep(hi - lo, 1000, 4);
@@ -1604,20 +1577,12 @@
       }
       const x = X(i).toFixed(1),
         y = Y(v).toFixed(1);
-      d3 +=
-        prev == null
-          ? `M${x} ${y} `
-          : `L${x} ${Y(prev).toFixed(1)} L${x} ${y} `;
+      d3 += prev == null ? `M${x} ${y} ` : `L${x} ${Y(prev).toFixed(1)} L${x} ${y} `;
       prev = v;
     });
-    if (d3)
-      s += `<path d="${d3}" fill="none" stroke="var(--silver)" stroke-width="1.5"/>`;
+
     const path = (a) =>
-      a
-        .map(
-          (v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1),
-        )
-        .join(" ");
+      a.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ");
     s += `<path class="dash" d="${path(ma)}" fill="none" stroke="var(--c2)" stroke-width="1.2"/>`;
     s += `<path d="${path(ptv)}" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/>`;
     s += `<circle cx="${X(ptv.length - 1)}" cy="${Y(ptv[ptv.length - 1])}" r="2.5" fill="var(--accent)"/></svg>`;
@@ -1652,8 +1617,7 @@
   }
   function scopeMatches() {
     let ms = D().matches;
-    if (UI.scope === "deck" && cfg().myDeck)
-      ms = ms.filter((m) => m.my === cfg().myDeck);
+    if (UI.scope === "deck" && cfg().myDeck) ms = ms.filter((m) => m.my === cfg().myDeck);
     return ms;
   }
   function fatigue(ms, info) {
@@ -1690,12 +1654,7 @@
         p = (a + b) / (A.length + Bm.length);
       const se = Math.sqrt(p * (1 - p) * (1 / A.length + 1 / Bm.length)) || 1,
         z = (pB - pA) / se;
-      if (
-        pB - pA >= 0.05 &&
-        pB >= 1.5 * pA &&
-        z >= 1.0 &&
-        (!mbest || z > mbest.z)
-      )
+      if (pB - pA >= 0.05 && pB >= 1.5 * pA && z >= 1.0 && (!mbest || z > mbest.z))
         mbest = { k, pA, pB, nA: A.length, nB: Bm.length, z };
     });
     [6, 11, 16, 21, 26].forEach((k) => {
@@ -1705,8 +1664,7 @@
       const pA = A.filter((m) => m.win).length / A.length,
         pB = Bm.filter((m) => m.win).length / Bm.length,
         p =
-          (A.filter((m) => m.win).length + Bm.filter((m) => m.win).length) /
-          (A.length + Bm.length);
+          (A.filter((m) => m.win).length + Bm.filter((m) => m.win).length) / (A.length + Bm.length);
       const se = Math.sqrt(p * (1 - p) * (1 / A.length + 1 / Bm.length)) || 1,
         z = (pB - pA) / se;
       if (pB - pA <= -0.1 && z <= -1.0 && (!best || z < best.z))
@@ -1741,13 +1699,9 @@
     const sess = all.slice(-cur.n);
     const rec10 = sess.slice(-10),
       base = scopeMatches().filter((m) => !rec10.includes(m));
-    const bw = base.length
-      ? (base.filter((m) => m.win).length + 5) / (base.length + 10)
-      : 0.5;
+    const bw = base.length ? (base.filter((m) => m.win).length + 5) / (base.length + 10) : 0.5;
     const bm0 = base.filter((m) => m.miss != null),
-      bm = bm0.length
-        ? (bm0.filter((m) => m.miss).length + 1) / (bm0.length + 10)
-        : 0.1;
+      bm = bm0.length ? (bm0.filter((m) => m.miss).length + 1) / (bm0.length + 10) : 0.1;
     const out = { cur, sess, bw, bm, miss: null, win: null, long: null };
     const r5 = sess.slice(-5).filter((m) => m.miss != null),
       mc = r5.filter((m) => m.miss).length;
@@ -1773,9 +1727,7 @@
     }
     const parts = [];
     if (s.miss)
-      parts.push(
-        `直近${s.miss.n}戦でプレミ${s.miss.c}回（普段の約${s.miss.ratio.toFixed(1)}倍）`,
-      );
+      parts.push(`直近${s.miss.n}戦でプレミ${s.miss.c}回（普段の約${s.miss.ratio.toFixed(1)}倍）`);
     if (s.win)
       parts.push(
         `直近10戦 ${s.win.w}勝${10 - s.win.w}敗（普段より${Math.round(-s.win.diff * 100)}pt低い）`,
@@ -1828,6 +1780,7 @@
         : "これまでの傾向（参考）：続けて対戦したことによる、はっきりした勝率の低下やプレミの増加はまだ見られません。");
   }
   function renderCharts() {
+    bindPeriodInputs();
     const ms = windowMatches();
     const { ptv, sv, ma, last, lastRank } = dpSeries(ms);
     $("#ptSub").textContent = ptv.length
@@ -1836,8 +1789,9 @@
     const bands = [
       [2, 0.12],
       [1, 0.18],
-    ].map(([k, op]) => Object.assign(boll(ptv, 10, k), { op }));
+    ].map(([k, op]) => Object.assign(boll(ptv, bbN(), k), { op }));
     lineChart($("#chPt"), ptv, {
+      h: 300,
       noX: ptv.length >= ({ std: 21, slow: 31 }[UI.macd] || 11),
       bands,
       marks: switchMarks(ms, 0),
@@ -1868,8 +1822,8 @@
     let warn = false;
     {
       const n = ptv.length - 1,
-        b1 = boll(ptv, 10, 1);
-      if (n >= 9 && b1.hi[n] != null) {
+        b1 = boll(ptv, bbN(), 1);
+      if (n >= bbN() - 1 && b1.hi[n] != null) {
         const mid = (b1.hi[n] + b1.lo[n]) / 2,
           sd = b1.hi[n] - mid || 1,
           z = (ptv[n] - mid) / sd;
@@ -1931,11 +1885,7 @@
       ["先攻率", pct(r.f), `${r.nf}／${r.n}戦`],
       ["先攻勝率", pct(r.pf), `${r.nf}戦`],
       ["後攻勝率", pct(r.ps), `${r.ns}戦`],
-      [
-        "先後の勝率差",
-        r.pf != null && r.ps != null ? sgn(r.pf - r.ps, 1) + "pt" : "–",
-        "",
-      ],
+      ["先後の勝率差", r.pf != null && r.ps != null ? sgn(r.pf - r.ps, 1) + "pt" : "–", ""],
       ["自分の事故率", pct(r.brick), ""],
       ["相手の事故率", pct(r.ob), ""],
       ["プレミ率", pct(r.miss), "プレミ記録のある試合"],
@@ -1948,7 +1898,46 @@
       .join("");
   }
 
+  const DEFAULT_RANK_BANDS = [100, 300, 1000, 3000];
+  const RANK_PRESETS = {
+    上位: [20, 40, 60, 80, 100, 200],
+    標準: DEFAULT_RANK_BANDS,
+    中位: [500, 750, 1000, 2000, 5000],
+  };
+  /** 区切りの順位（例：[100, 300]）から、[下限, 上限, 表示名] の順位帯を作る。 */
+  function rankBands() {
+    const cut = (cfg().rankBands || DEFAULT_RANK_BANDS).filter((v) => v > 0).sort((a, b) => a - b);
+    const out = [];
+    let lo = 1;
+    cut.forEach((v) => {
+      if (v < lo) return;
+      out.push([lo, v, lo === 1 ? `〜${v}位` : `${lo}〜${v}位`]);
+      lo = v + 1;
+    });
+    out.push([lo, Infinity, `${lo}位〜`]);
+    return out;
+  }
+  function renderRankBandInput() {
+    const el = $("#rankBandIn");
+    if (document.activeElement !== el)
+      el.value = (cfg().rankBands || DEFAULT_RANK_BANDS).join(", ");
+  }
+  $("#rankBandIn").addEventListener("change", (e) => {
+    const v = e.target.value
+      .split(/[,、\s]+/)
+      .map((x) => Math.round(Number(x)))
+      .filter((x) => x > 0);
+    cfg().rankBands = v.length ? Array.from(new Set(v)).sort((a, b) => a - b) : null;
+    saveCfg();
+  });
+  $("#rankPresets").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-p]");
+    if (!b) return;
+    cfg().rankBands = RANK_PRESETS[b.dataset.p].slice();
+    saveCfg();
+  });
   function rankShare(ms) {
+    renderRankBandInput();
     const el = $("#chRank"),
       lg = $("#rankLegend");
     const rk = {};
@@ -1961,13 +1950,7 @@
       }
       rk[m.id] = lr != null && m.ts - lt <= 3 * HOUR ? lr : null;
     });
-    const B = [
-      [1, 100, "〜100位"],
-      [101, 300, "101〜300位"],
-      [301, 1000, "301〜1000位"],
-      [1001, 3000, "1001〜3000位"],
-      [3001, Infinity, "3001位〜"],
-    ];
+    const B = rankBands();
     const withR = ms.filter((m) => rk[m.id] != null);
     if (!withR.length) {
       el.innerHTML =
@@ -1981,11 +1964,8 @@
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6)
       .map((x) => x[0]);
-    const keys = top.concat(
-      Object.keys(tot).length > top.length ? ["その他"] : [],
-    );
-    const col = (k) =>
-      k === "その他" ? "var(--c0)" : `var(--c${top.indexOf(k) + 1})`;
+    const keys = top.concat(Object.keys(tot).length > top.length ? ["その他"] : []);
+    const col = (k) => (k === "その他" ? "var(--c0)" : `var(--c${top.indexOf(k) + 1})`);
     el.innerHTML = B.map(([a, b, lab]) => {
       const g = withR.filter((m) => rk[m.id] >= a && rk[m.id] <= b);
       if (!g.length) return "";
@@ -2035,16 +2015,12 @@
           const a = ms.filter((m) => (m.ver || "") === v);
           return `<tr><td>${esc(v)}</td><td>${fmtT(a[0].ts)}〜${fmtT(a[a.length - 1].ts)}</td>${row(v, a)}</tr>`;
         })
-        .join(
-          "",
-        )}<tr class="sum"><td>総合</td><td></td>${row("all", ms)}</tr></tbody></table>`;
+        .join("")}<tr class="sum"><td>総合</td><td></td>${row("all", ms)}</tr></tbody></table>`;
     if (vl.length < 2) {
       $("#verMatrix").innerHTML = "";
       return;
     }
-    const opps = Object.entries(
-      ms.reduce((o, m) => ((o[m.opp] = (o[m.opp] || 0) + 1), o), {}),
-    )
+    const opps = Object.entries(ms.reduce((o, m) => ((o[m.opp] = (o[m.opp] || 0) + 1), o), {}))
       .sort((a, b) => b[1] - a[1])
       .map((x) => x[0]);
     $("#verMatrix").innerHTML =
@@ -2052,9 +2028,7 @@
         .map((o) => {
           const cell = (a) => {
             const r = rates(a);
-            return r.n
-              ? `${pct(r.p, 0)}<small style="color:var(--muted)"> (${r.n})</small>`
-              : "–";
+            return r.n ? `${pct(r.p, 0)}<small style="color:var(--muted)"> (${r.n})</small>` : "–";
           };
           return `<tr><td>${esc(o)}</td>${vl.map((v) => `<td>${cell(ms.filter((m) => m.opp === o && (m.ver || "") === v))}</td>`).join("")}<td>${cell(ms.filter((m) => m.opp === o))}</td></tr>`;
         })
@@ -2080,14 +2054,7 @@
       if (share(m.opp) < 0 && !restDecks.includes(m.opp)) restDecks.push(m.opp);
     });
     const keys = benchDecks.concat(restDecks);
-    const palette = [
-      "var(--c1)",
-      "var(--c2)",
-      "var(--c3)",
-      "var(--c4)",
-      "var(--c5)",
-      "var(--c6)",
-    ];
+    const palette = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)"];
     const col = (k) => {
       const i = keys.indexOf(k);
       return i < palette.length ? palette[i] : `hsl(${(i * 47) % 360} 45% 55%)`;
@@ -2106,8 +2073,7 @@
       pt = 10,
       pb = 24,
       n = pts.length;
-    const X = (i) =>
-        n < 2 ? (pl + w - pr) / 2 : pl + ((w - pl - pr) * i) / (n - 1),
+    const X = (i) => (n < 2 ? (pl + w - pr) / 2 : pl + ((w - pl - pr) * i) / (n - 1)),
       Y = (v) => pt + (h - pt - pb) * (1 - v / 10);
     let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="直近10戦の相手デッキ内訳の推移">`;
     [0, 5, 10].forEach((t) => {
@@ -2125,12 +2091,7 @@
         d = `M${x0} ${Y(hi[0])} L${x1} ${Y(hi[0])} L${x1} ${Y(lo[0])} L${x0} ${Y(lo[0])} Z`;
       } else
         d =
-          hi
-            .map(
-              (v, i) =>
-                (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1),
-            )
-            .join(" ") +
+          hi.map((v, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1)).join(" ") +
           " " +
           lo
             .map((v, i) => i)
@@ -2145,9 +2106,7 @@
       const x = (X(mk.i - 1) + X(mk.i)) / 2;
       s += `<line x1="${x}" x2="${x}" y1="${pt}" y2="${h - pb}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 3"/><text x="${x + 3}" y="${pt + 10}" style="fill:var(--ink)">${esc(mk.label)}</text>`;
     });
-    const lab = [0, Math.floor((n - 1) / 2), n - 1].filter(
-      (v, i, a) => a.indexOf(v) === i,
-    );
+    const lab = [0, Math.floor((n - 1) / 2), n - 1].filter((v, i, a) => a.indexOf(v) === i);
     lab.forEach((i, j) => {
       s += `<text x="${X(i)}" y="${h - 6}" text-anchor="${n < 2 ? "middle" : j === 0 ? "start" : i === n - 1 ? "end" : "middle"}">${fmtT(ms[i].ts)}</text>`;
     });
@@ -2169,8 +2128,7 @@
       p = clamp(p, 0.01, 0.99);
       return Math.log(p / (1 - p));
     };
-  const num = (v) =>
-    v === "" || v == null || !isFinite(Number(v)) ? null : Number(v);
+  const num = (v) => (v === "" || v == null || !isFinite(Number(v)) ? null : Number(v));
   function envRows() {
     const c = cfg();
     if (c.env && c.env.rows) return c.env.rows;
@@ -2232,15 +2190,12 @@
     else {
       const sb = bs.reduce((a, b) => a + b, 0);
       res.b = Math.max(0, 100 - sb);
-      if (sb >= 100)
-        res.bWhy = "登録デッキの参照シェア合計が100%以上のため、その他は0%です";
+      if (sb >= 100) res.bWhy = "登録デッキの参照シェア合計が100%以上のため、その他は0%です";
     }
     if (res.b > 0) {
       const qs = L.map((n) => (Q[n] != null ? Q[n] : n === deck ? 50 : null));
       if (wMe != null && qs.every((v) => v != null)) {
-        const v =
-          (wMe - L.reduce((x, n, i) => x + bs[i] * qs[i], 0) / 100) /
-          (res.b / 100);
+        const v = (wMe - L.reduce((x, n, i) => x + bs[i] * qs[i], 0) / 100) / (res.b / 100);
         res.q = clamp(v, 5, 95);
         if (Math.abs(v - res.q) > 1e-9)
           res.qWhy = `逆算値${v.toFixed(1)}%が範囲外のため${res.q}%に丸めました`;
@@ -2251,9 +2206,7 @@
             : "全行の同デッキ勝率が必要です";
       const os = L.map((n) => num(E[n].omega));
       if (os.every((v) => v != null)) {
-        const v =
-          (50 - L.reduce((x, n, i) => x + bs[i] * os[i], 0) / 100) /
-          (res.b / 100);
+        const v = (50 - L.reduce((x, n, i) => x + bs[i] * os[i], 0) / 100) / (res.b / 100);
         res.omega = clamp(v, 5, 95);
         if (Math.abs(v - res.omega) > 1e-9)
           res.oWhy = `逆算値${v.toFixed(1)}%が範囲外のため${res.omega}%に丸めました`;
@@ -2352,9 +2305,7 @@
         subs.push(n);
       } else q = q / 100;
       const om = num(row.omega);
-      const est =
-        (isO && od.q != null) ||
-        (off && qRows(deck)[n] == null && op.q[n] != null);
+      const est = (isO && od.q != null) || (off && qRows(deck)[n] == null && op.q[n] != null);
       const qhat = sig(logit(omMe) - logit(om == null ? 0.5 : om / 100));
       return {
         n,
@@ -2380,10 +2331,7 @@
         build: (() => {
           const nf = a.filter((m) => !isFlag(m)),
             pnf = shr(nf.filter((m) => m.win).length, nf.length, pNF0);
-          return (
-            a.filter(isFlag).reduce((x, m) => x + ((m.win ? 1 : 0) - pnf), 0) /
-            N
-          );
+          return a.filter(isFlag).reduce((x, m) => x + ((m.win ? 1 : 0) - pnf), 0) / N;
         })(),
       };
     });
@@ -2449,18 +2397,9 @@
       return;
     }
     const max = Math.max(
-      ...[
-        "deck",
-        "tech",
-        "luck",
-        "base",
-        "field",
-        "meta",
-        "build",
-        "play",
-        "coin",
-        "brick",
-      ].map((k) => Math.abs(r[k])),
+      ...["deck", "tech", "luck", "base", "field", "meta", "build", "play", "coin", "brick"].map(
+        (k) => Math.abs(r[k]),
+      ),
       0.001,
     );
     main.innerHTML = `<div class="card-h"><h2>DTL要因分解</h2><span class="sub">${esc(deck)} ・ ${r.N}戦</span></div>
@@ -2507,9 +2446,7 @@
   }
   function renderBench(names) {
     const deck = cfg().myDeck;
-    $("#benchSub").textContent = deck
-      ? `環境データ（共通） ＋ ${deck} の同デッキ勝率`
-      : "";
+    $("#benchSub").textContent = deck ? `環境データ（共通） ＋ ${deck} の同デッキ勝率` : "";
     if (benchDirty) return;
     const E = envRows(),
       Q = qRows(deck),
@@ -2620,11 +2557,7 @@
   /* ---------- 設定 ---------- */
   function renderData() {
     const c = cfg();
-    if (
-      UI.renIdx != null &&
-      document.activeElement &&
-      document.activeElement.id === "renIn"
-    )
+    if (UI.renIdx != null && document.activeElement && document.activeElement.id === "renIn")
       UI.renVal = document.activeElement.value;
     $("#deckList").innerHTML = c.decks.length
       ? c.decks
@@ -2635,11 +2568,7 @@
           )
           .join("")
       : '<span class="hint" style="margin:0;background:none;padding:0">まだありません</span>';
-    if (
-      UI.vrIdx != null &&
-      document.activeElement &&
-      document.activeElement.id === "vrIn"
-    )
+    if (UI.vrIdx != null && document.activeElement && document.activeElement.id === "vrIn")
       UI.vrVal = document.activeElement.value;
     const vl = c.myDeck ? verList(c.myDeck) : [],
       vc = {};
@@ -2666,9 +2595,7 @@
     renderFileInfo();
     $("#connInfo").innerHTML =
       `<span class="dot warn"></span><b>この端末のブラウザに保存</b> ・ 記録 ${REAL.matches.length}件`;
-    $("#demoBtn").textContent = DEMO
-      ? "サンプルを閉じる"
-      : "サンプルデータで試す";
+    $("#demoBtn").textContent = DEMO ? "サンプルを閉じる" : "サンプルデータで試す";
   }
   $("#deckAdd").onclick = () => {
     if (addDeck($("#deckNew").value)) {
@@ -2720,9 +2647,7 @@
     c.verList = vl;
     if (UI.ver === oldV) UI.ver = newV;
     await saveCfg();
-    const hit = D().matches.filter(
-      (m) => m.my === deck && (m.ver || "") === oldV,
-    );
+    const hit = D().matches.filter((m) => m.my === deck && (m.ver || "") === oldV);
     let k = 0;
     try {
       for (const m of hit) {
@@ -2732,9 +2657,7 @@
       }
       toast(`「${oldV}」を「${newV}」に変更しました（記録${k}件）`);
     } catch (e) {
-      toast(
-        `記録の更新が${k}件目で止まりました。もう一度同じ名前変更をすると残りを直せます`,
-      );
+      toast(`記録の更新が${k}件目で止まりました。もう一度同じ名前変更をすると残りを直せます`);
     }
   }
   $("#verListEd").addEventListener("click", (e) => {
@@ -2810,10 +2733,7 @@
     const mv = e.target.closest("button[data-mv]");
     if (mv) {
       const i = Number(mv.dataset.i);
-      moveChar(
-        i,
-        mv.dataset.mv === "top" ? 0 : mv.dataset.mv === "up" ? i - 1 : i + 1,
-      );
+      moveChar(i, mv.dataset.mv === "top" ? 0 : mv.dataset.mv === "up" ? i - 1 : i + 1);
       return;
     }
     const b = e.target.closest("button[data-ci]");
@@ -2851,9 +2771,7 @@
   });
   $("#charListEd").addEventListener("dragend", () => {
     dragI = null;
-    $$("#charListEd .drag,#charListEd .over").forEach((x) =>
-      x.classList.remove("drag", "over"),
-    );
+    $$("#charListEd .drag,#charListEd .over").forEach((x) => x.classList.remove("drag", "over"));
   });
   $("#charBulkAdd").onclick = () => {
     const add = $("#charBulk")
@@ -2898,9 +2816,7 @@
     });
     if (c.env && c.env.rows) {
       const er = {};
-      Object.entries(c.env.rows).forEach(
-        ([k, v]) => (er[k === oldN ? newN : k] = v),
-      );
+      Object.entries(c.env.rows).forEach(([k, v]) => (er[k === oldN ? newN : k] = v));
       c.env = { rows: er };
     }
     const nb = {};
@@ -2929,13 +2845,9 @@
         k++;
         if (k % 20 === 0) toast(`記録を更新中… ${k}／${hit.length}`);
       }
-      toast(
-        `「${oldN}」を「${newN}」に変更しました（記録${k}件・ベンチマークも更新）`,
-      );
+      toast(`「${oldN}」を「${newN}」に変更しました（記録${k}件・ベンチマークも更新）`);
     } catch (e) {
-      toast(
-        `記録の更新が${k}件目で止まりました。もう一度同じ名前変更をすると残りを直せます`,
-      );
+      toast(`記録の更新が${k}件目で止まりました。もう一度同じ名前変更をすると残りを直せます`);
     }
   }
   $("#deckList").addEventListener("click", (e) => {
@@ -2995,10 +2907,7 @@
     $("#expTa").value = text;
     $("#expCopy").onclick = () => {
       const ta = $("#expTa");
-      (navigator.clipboard
-        ? navigator.clipboard.writeText(text)
-        : Promise.reject()
-      )
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
         .then(() => toast("コピーしました"))
         .catch(() => {
           ta.select();
@@ -3016,11 +2925,7 @@
     render();
     return offerFile(
       `duel-data-${stamp()}.json`,
-      JSON.stringify(
-        { version: 1, matches: D().matches, cfg: D().cfg },
-        null,
-        1,
-      ),
+      JSON.stringify({ version: 1, matches: D().matches, cfg: D().cfg }, null, 1),
       "application/json",
     );
   };
@@ -3097,8 +3002,7 @@
       }
       msg.textContent = `${k}件を読み込みました`;
     } catch (err) {
-      msg.textContent =
-        "読み込めませんでした。このページで書き出したJSONを選んでください。";
+      msg.textContent = "読み込めませんでした。このページで書き出したJSONを選んでください。";
     }
     e.target.value = "";
   });
@@ -3177,8 +3081,7 @@
     saveCfg();
   }
   function readOddsInputs() {
-    const n = (id, lo, hi) =>
-      clamp(Math.round(Number($(id).value) || 0), lo, hi);
+    const n = (id, lo, hi) => clamp(Math.round(Number($(id).value) || 0), lo, hi);
     ODDS.D = n("#oddD", 1, 60);
     ODDS.H = n("#oddH", 0, ODDS.D);
     ODDS.A = n("#oddA", 0, ODDS.D);
@@ -3213,9 +3116,7 @@
     $("#oddsTarget").textContent = deck
       ? `反映先：${deck}（${curVer()}）・現在の理論値 ${cur == null ? "未設定（実績から計算）" : cur + "%"}`
       : "反映先：上部で使用デッキを選ぶと反映できます";
-    $$("#oddsAxis button").forEach((b) =>
-      b.setAttribute("aria-pressed", b.dataset.x === ODDS.x),
-    );
+    $$("#oddsAxis button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.x === ODDS.x));
     oddsChart();
   }
   function oddsChart() {
@@ -3264,12 +3165,7 @@
     ].forEach(([k, col]) => {
       const d = pts
         .map((p, i) =>
-          p
-            ? (i && pts[i - 1] ? "L" : "M") +
-              X(i).toFixed(1) +
-              " " +
-              Y(p[k]).toFixed(1)
-            : "",
+          p ? (i && pts[i - 1] ? "L" : "M") + X(i).toFixed(1) + " " + Y(p[k]).toFixed(1) : "",
         )
         .join(" ");
       s += `<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>`;
@@ -3308,9 +3204,7 @@
       el = $("#brickIn");
     if (!el) return;
     el.disabled = !deck;
-    $("#brickLabel").textContent = deck
-      ? `${deck}（${curVer()}）`
-      : "使用デッキ未設定";
+    $("#brickLabel").textContent = deck ? `${deck}（${curVer()}）` : "使用デッキ未設定";
     if (document.activeElement !== el) {
       const v = deck ? brickTheory(deck, curVer()) : null;
       el.value = v == null ? "" : v;
@@ -3385,10 +3279,7 @@
         note: "",
         rank:
           i % 3 === 0
-            ? Math.max(
-                5,
-                Math.round(2500 * Math.pow(0.965, i)) + Math.round(r() * 20),
-              )
+            ? Math.max(5, Math.round(2500 * Math.pow(0.965, i)) + Math.round(r() * 20))
             : null,
         player: i % 17 === 0 ? "サンプル選手" : "",
         silver: i % 3 === 0 ? 3500 + i * 6 : null,
@@ -3397,14 +3288,7 @@
     DEMO = {
       matches: ms,
       cfg: {
-        decks: [
-          "サンプル自デッキ",
-          "相手A",
-          "相手B",
-          "相手C",
-          "相手D",
-          "相手E",
-        ],
+        decks: ["サンプル自デッキ", "相手A", "相手B", "相手C", "相手D", "相手E"],
         myDeck: "サンプル自デッキ",
         verBy: { サンプル自デッキ: "ver.2" },
         env: {
