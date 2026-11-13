@@ -18,6 +18,12 @@
   /* ---------- 読み込みの確認 ---------- */
   // index.html と app.js の版が食い違う（片方だけ古いキャッシュが残っている等）と動かないため、先に確認する
   const REQUIRED_IDS = [
+    "noteOpen",
+    "oppNoteIn",
+    "oppNoteOpen",
+    "noteDlg",
+    "noteDlgIn",
+    "noteClose",
     "benchAdd",
     "benchSave",
     "benchTable",
@@ -3608,6 +3614,100 @@
     UI.dtlDetail = b.dataset.m === "1";
     renderDTL();
   });
+  /* ---------- 対面メモ（相手デッキごとの自由メモ） ---------- */
+  const deckNotes = () => cfg().deckNotes || {};
+  function setDeckNote(deck, text) {
+    if (!deck) return;
+    const c = cfg();
+    c.deckNotes = Object.assign({}, c.deckNotes || {});
+    if (text.trim()) c.deckNotes[deck] = text;
+    else delete c.deckNotes[deck];
+    saveCfg();
+  }
+  /** 入力中は少し待ってからまとめて保存する（1文字ごとに保存しない） */
+  function noteSaver(getDeck, savedEl) {
+    let t = null;
+    return (e) => {
+      clearTimeout(t);
+      const deck = getDeck(),
+        text = e.target.value;
+      if (savedEl) savedEl.textContent = "入力中…";
+      t = setTimeout(
+        () => {
+          setDeckNote(deck, text);
+          if (savedEl) savedEl.textContent = "保存しました";
+        },
+        e.type === "change" ? 0 : 800,
+      );
+    };
+  }
+  function renderOppNote() {
+    const box = $("#oppNoteBox"),
+      ta = $("#oppNoteIn");
+    box.hidden = !F.opp;
+    if (!F.opp) return;
+    $("#oppNoteLbl").textContent = `対面メモ：${F.opp}`;
+    if (document.activeElement !== ta) ta.value = deckNotes()[F.opp] || "";
+  }
+  const saveOppNote = noteSaver(() => F.opp);
+  $("#oppNoteIn").addEventListener("input", saveOppNote);
+  $("#oppNoteIn").addEventListener("change", saveOppNote);
+  $("#oppChips").addEventListener("click", () => renderOppNote());
+
+  /* 上部の「対面メモ」ボタンから開くメモ画面 */
+  function noteDecks() {
+    const c = cfg();
+    return Array.from(new Set(c.decks.concat(Object.keys(deckNotes()))));
+  }
+  function renderNoteDlg() {
+    const dlg = $("#noteDlg");
+    if (dlg.hidden) return;
+    const list = noteDecks(),
+      n = deckNotes();
+    if (!UI.noteDeck || !list.includes(UI.noteDeck))
+      UI.noteDeck = F.opp || list[0] || "";
+    $("#noteDecks").innerHTML = list.length
+      ? list
+          .map(
+            (d) =>
+              `<button class="chip" data-nd="${esc(d)}" aria-pressed="${d === UI.noteDeck}">${esc(d)}${n[d] ? '<span class="c">●</span>' : ""}</button>`,
+          )
+          .join("")
+      : '<span class="hint" style="margin:0">デッキ候補を登録すると、ここに並びます。</span>';
+    const ta = $("#noteDlgIn");
+    ta.disabled = !UI.noteDeck;
+    $("#noteDlgDeck").textContent = UI.noteDeck ? `${UI.noteDeck} のメモ` : "";
+    if (document.activeElement !== ta) ta.value = n[UI.noteDeck] || "";
+  }
+  function openNoteDlg(deck) {
+    UI.noteDeck = deck || F.opp || UI.noteDeck;
+    $("#noteDlg").hidden = false;
+    $("#noteSaved").textContent = "";
+    renderNoteDlg();
+    $("#noteDlgIn").focus();
+  }
+  function closeNoteDlg() {
+    $("#noteDlg").hidden = true;
+    renderOppNote();
+  }
+  $("#noteOpen").addEventListener("click", () => openNoteDlg());
+  $("#oppNoteOpen").addEventListener("click", () => openNoteDlg(F.opp));
+  $("#noteClose").addEventListener("click", closeNoteDlg);
+  $("#noteDlg").addEventListener("click", (e) => {
+    if (e.target.id === "noteDlg") closeNoteDlg();
+    const b = e.target.closest("button[data-nd]");
+    if (!b) return;
+    UI.noteDeck = b.dataset.nd;
+    $("#noteSaved").textContent = "";
+    renderNoteDlg();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("#noteDlg").hidden) closeNoteDlg();
+  });
+  const saveDlgNote = noteSaver(() => UI.noteDeck, $("#noteSaved"));
+  $("#noteDlgIn").addEventListener("input", saveDlgNote);
+  $("#noteDlgIn").addEventListener("change", saveDlgNote);
+
   /* ---------- サンプルデータ ---------- */
   function startDemo() {
     let s = 11;
@@ -3761,6 +3861,8 @@
       else a.removeAttribute("aria-current");
     });
     renderFilters();
+    renderOppNote();
+    renderNoteDlg();
     if (showSide) {
       renderForm();
       renderRecent();

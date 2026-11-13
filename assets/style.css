@@ -1948,3 +1948,76 @@ body::before {
 .hist tbody tr.m:hover td:first-child {
   background: var(--chip);
 }
+
+/* 対面メモ */
+.oppnote {
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+}
+.oppnote textarea,
+.notedlg textarea {
+  width: 100%;
+  min-height: 0;
+  font-family: var(--f-body);
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  padding: 6px 8px;
+  resize: vertical;
+}
+.oppnote textarea {
+  height: 4.8em;
+}
+.notebtn {
+  flex: 0 0 auto;
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+.notedlg {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: rgba(10, 16, 28, 0.45);
+  padding: calc(env(safe-area-inset-top, 0px) + 40px)
+    max(16px, env(safe-area-inset-right, 0px)) 16px
+    max(16px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+}
+.notedlg[hidden] {
+  display: none;
+}
+.notedlg .nd-in {
+  width: min(640px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+.notedlg .nd-h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.notedlg .nd-h .btn {
+  margin-left: auto;
+}
+.notedlg .chips {
+  max-height: none;
+}
+.notedlg textarea {
+  height: min(50vh, 360px);
+}
+.notedlg .chip .c {
+  color: var(--accent);
+  opacity: 1;
+}

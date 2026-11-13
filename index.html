@@ -20,8 +20,8 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261112g" />
-    <script src="assets/app.js?v=20261112g" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261113a" />
+    <script src="assets/app.js?v=20261113a" defer></script>
   </head>
   <body>
     <header class="top">
@@ -34,6 +34,9 @@
           href="#dtl"
           aria-label="DTL要因分解を開く"
         ></a>
+        <button class="btn small notebtn" id="noteOpen" type="button">
+          対面メモ
+        </button>
         <div class="mydeck">
           <label for="myDeck">使用デッキ</label
           ><select id="myDeck"></select
@@ -82,6 +85,20 @@
                 type="text"
                 placeholder="新しい相手デッキ"
               /><button class="btn small" id="oppAdd">追加</button>
+            </div>
+            <div class="oppnote" id="oppNoteBox" hidden>
+              <div class="lblrow">
+                <span class="lbl" id="oppNoteLbl">対面メモ</span
+                ><button class="linkbtn" id="oppNoteOpen" type="button">
+                  大きく開く
+                </button>
+              </div>
+              <textarea
+                id="oppNoteIn"
+                rows="3"
+                placeholder="この対面の注意点・立ち回りなど（自動で保存）"
+                aria-label="この対面のメモ"
+              ></textarea>
             </div>
           </div>
           <div class="row2">
@@ -807,6 +824,31 @@
             </div>
           </section>
         </main>
+      </div>
+    </div>
+    <div
+      class="notedlg"
+      id="noteDlg"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="noteTitle"
+    >
+      <div class="nd-in">
+        <div class="nd-h">
+          <h2 id="noteTitle">対面メモ</h2>
+          <span class="sub" id="noteDlgDeck"></span
+          ><button class="btn small" id="noteClose" type="button">
+            閉じる
+          </button>
+        </div>
+        <div class="chips" id="noteDecks"></div>
+        <textarea
+          id="noteDlgIn"
+          aria-label="選んだデッキのメモ"
+          placeholder="この対面の注意点・立ち回り・警戒札など（自動で保存）"
+        ></textarea>
+        <div class="hint" id="noteSaved"></div>
       </div>
     </div>
   </body>
