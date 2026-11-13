@@ -1462,21 +1462,21 @@
       s += `<path class="dash" d="${d2}" fill="none" stroke="var(--c2)" stroke-width="2"/>`;
     }
     if (opt.v3) {
-      let d3 = "",
-        prev = null;
-      opt.v3.forEach((v, i) => {
-        if (v == null) {
-          prev = null;
-          return;
-        }
-        const x = X(i).toFixed(1),
-          y = Y(v).toFixed(1);
-        if (prev == null) d3 += `M${x} ${y} `;
-        else d3 += `L${x} ${Y(prev).toFixed(1)} L${x} ${y} `;
-        prev = v;
-      });
-      if (d3)
-        s += `<path d="${d3}" fill="none" stroke="var(--silver)" stroke-width="2"/>`;
+      // 目標順位ライン：記録した点だけを直線でつなぐ（記録のない区間は補間）
+      const pts3 = opt.v3.map((v, i) => [i, v]).filter((p) => p[1] != null);
+      if (pts3.length) {
+        const d3 = pts3
+          .map(
+            ([i, v], k) =>
+              (k ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1),
+          )
+          .join(" ");
+        s += `<path d="${d3}" fill="none" stroke="var(--silver)" stroke-width="2" stroke-linejoin="round"/>`;
+        pts3.forEach(
+          ([i, v]) =>
+            (s += `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="2.2" fill="var(--silver)"/>`),
+        );
+      }
     }
     const li = vals.length - 1;
     s += `<circle cx="${X(li)}" cy="${Y(vals[li])}" r="4" fill="var(--accent)"/>`;
@@ -1665,11 +1665,11 @@
           seen = true;
         }
         if (m.silver != null) last = Number(m.silver);
-        sv.push(last);
+        sv.push(m.silver != null && m.silver !== "" ? Number(m.silver) : null);
       } else if (m.silver != null) last = Number(m.silver);
       if (m.rank != null) lastRank = m.rank;
     });
-    if (ptv.length) sv = [firstSv].concat(sv);
+    if (ptv.length) sv = [null].concat(sv);
     const ma = ptv.map((v, i) => {
       const a = ptv.slice(Math.max(0, i - (maN() - 1)), i + 1);
       return a.reduce((x, y) => x + y, 0) / a.length;
