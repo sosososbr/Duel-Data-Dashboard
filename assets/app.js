@@ -18,6 +18,7 @@
   /* ---------- 読み込みの確認 ---------- */
   // index.html と app.js の版が食い違う（片方だけ古いキャッシュが残っている等）と動かないため、先に確認する
   const REQUIRED_IDS = [
+    "histFilters",
     "noteOpen",
     "oppNoteIn",
     "oppNoteOpen",
@@ -1281,11 +1282,150 @@
     UI.player = UI.player === b.dataset.player ? null : b.dataset.player;
     render();
   });
+  /* ---------- 戦績一覧の列フィルター（Excel のフィルターのように値を選んで絞り込む） ---------- */
+  const HF_COLS = {
+    date: {
+      label: "日付",
+      vals: (m) => {
+        const d = new Date(m.ts);
+        return [`${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`];
+      },
+    },
+    my: { label: "使用", vals: (m) => [m.my + (m.ver ? ` ${m.ver}` : "")] },
+    opp: { label: "相手", vals: (m) => [m.opp] },
+    char: { label: "キャラ", vals: (m) => [m.char || "（空白）"] },
+    player: { label: "プレイヤー", vals: (m) => [m.player || "（空白）"] },
+    first: { label: "先後", vals: (m) => [m.first ? "先" : "後"] },
+    win: { label: "勝敗", vals: (m) => [m.win ? "○" : "×"] },
+    flag: {
+      label: "フラグ",
+      vals: (m) => {
+        const f = [
+          m.brick ? "事故" : "",
+          m.oppBrick ? "相手事故" : "",
+          m.miss ? "プレミ" : "",
+          buildTag(m.build),
+        ].filter(Boolean);
+        return f.length ? f : ["（なし）"];
+      },
+    },
+  };
+  UI.hf = UI.hf || {};
+  /** 選んだ値のどれかに当てはまる試合だけを残す（列どうしは「かつ」） */
+  function applyHF(ms) {
+    return ms.filter((m) =>
+      Object.entries(UI.hf).every(
+        ([k, set]) => !set || HF_COLS[k].vals(m).some((v) => set.has(v)),
+      ),
+    );
+  }
+  const hfTh = (label, key) =>
+    `<th class="hfth">${label}<button class="hfbtn${UI.hf[key] ? " on" : ""}" data-hf="${key}" aria-label="${HF_COLS[key].label}で絞り込む" title="${HF_COLS[key].label}で絞り込む">▾</button></th>`;
+  function renderHFBar() {
+    const act = Object.entries(UI.hf).filter(([, set]) => set);
+    $("#histFilters").innerHTML = act.length
+      ? act
+          .map(
+            ([k, set]) =>
+              `<span class="hfchip"><b>${HF_COLS[k].label}</b>：${Array.from(set).map(esc).join("、")}<button data-hfx="${k}" aria-label="${HF_COLS[k].label}の絞り込みを外す">×</button></span>`,
+          )
+          .join("") + '<button class="linkbtn" data-hfx="*">すべて解除</button>'
+      : "";
+  }
+  let hfOpen = null;
+  function closeHF() {
+    const p = $("#hfPop");
+    if (p) p.remove();
+    hfOpen = null;
+  }
+  function openHF(key, btn) {
+    closeHF();
+    hfOpen = key;
+    let base = windowMatches();
+    if (UI.player) base = base.filter((m) => m.player === UI.player);
+    // ほかの列の絞り込みを反映した候補だけを並べる
+    const others = Object.assign({}, UI.hf);
+    delete others[key];
+    const saved = UI.hf;
+    UI.hf = others;
+    const pool = applyHF(base);
+    UI.hf = saved;
+    const cnt = {};
+    pool.forEach((m) =>
+      HF_COLS[key].vals(m).forEach((v) => (cnt[v] = (cnt[v] || 0) + 1)),
+    );
+    let values = Object.keys(cnt);
+    if (key === "date") values.sort((a, b) => new Date(b) - new Date(a));
+    else values.sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b, "ja"));
+    const sel = UI.hf[key];
+    const pop = document.createElement("div");
+    pop.id = "hfPop";
+    pop.className = "hfpop";
+    pop.setAttribute("role", "dialog");
+    pop.setAttribute("aria-label", `${HF_COLS[key].label}で絞り込む`);
+    pop.innerHTML = `<div class="hfh"><b>${HF_COLS[key].label}</b><button class="linkbtn" data-hfall="1">すべて選択</button><button class="linkbtn" data-hfall="0">すべて外す</button></div><div class="hflist">${values
+      .map(
+        (v) =>
+          `<label><input type="checkbox" value="${esc(v)}"${!sel || sel.has(v) ? " checked" : ""}><span>${esc(v)}</span><small>${cnt[v]}</small></label>`,
+      )
+      .join(
+        "",
+      )}</div><div class="hff"><button class="btn small" data-hfok="1">閉じる</button></div>`;
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.left =
+      Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) +
+      "px";
+    pop.style.top =
+      Math.min(window.innerHeight - pop.offsetHeight - 8, r.bottom + 4) + "px";
+    const sync = () => {
+      const boxes = $$("#hfPop .hflist input");
+      const on = boxes.filter((b) => b.checked).map((b) => b.value);
+      UI.hf[key] = on.length === boxes.length ? null : new Set(on);
+      renderHistory();
+    };
+    pop.addEventListener("change", sync);
+    pop.addEventListener("click", (e) => {
+      const all = e.target.closest("[data-hfall]");
+      if (all) {
+        $$("#hfPop .hflist input").forEach(
+          (b) => (b.checked = all.dataset.hfall === "1"),
+        );
+        sync();
+      }
+      if (e.target.closest("[data-hfok]")) closeHF();
+    });
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".hfbtn");
+    if (b) {
+      e.stopPropagation();
+      if (hfOpen === b.dataset.hf) closeHF();
+      else openHF(b.dataset.hf, b);
+      return;
+    }
+    const x = e.target.closest("[data-hfx]");
+    if (x) {
+      if (x.dataset.hfx === "*") UI.hf = {};
+      else UI.hf[x.dataset.hfx] = null;
+      closeHF();
+      renderHistory();
+      return;
+    }
+    if (hfOpen && !e.target.closest("#hfPop")) closeHF();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && hfOpen) closeHF();
+  });
+
   function renderHistory() {
     renderSelf();
     renderPlayers();
     let ms = windowMatches();
     if (UI.player) ms = ms.filter((m) => m.player === UI.player);
+    const base = ms;
+    ms = applyHF(ms);
+    renderHFBar();
     const el = $("#histTable");
     if (!ms.length) {
       el.innerHTML = '<div class="empty">この条件の記録はありません。</div>';
@@ -1309,7 +1449,7 @@
     let html = "",
       cur = "";
     const idx = {};
-    ms.forEach((m, i) => (idx[m.id] = i + 1));
+    base.forEach((m, i) => (idx[m.id] = i + 1));
     rev.forEach((m) => {
       const k = dayKey(m.ts);
       if (k !== cur) {
@@ -1330,7 +1470,7 @@
       const d = new Date(m.ts);
       html += `<tr class="m" data-id="${esc(m.id)}"><td>${idx[m.id]}</td><td>${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</td><td class="tx">${esc(m.my)}${m.ver ? `<small style="color:var(--muted)"> ${esc(m.ver)}</small>` : ""}</td><td class="tx">${esc(m.opp)}</td><td class="tx">${esc(m.char || "")}</td><td class="tx">${esc(m.player || "")}</td><td>${m.first ? "先" : "後"}</td><td class="${m.win ? "w" : "l"}">${m.win ? "○" : "×"}</td><td>${fmtPt(Number(m.pt) || 0)}</td><td>${(cum[m.id] || 0).toLocaleString("ja-JP")}${m.dp != null && m.dp !== "" ? '<span class="sub-mark" title="実際のDPで補正">実</span>' : ""}</td><td>${m.rank != null ? m.rank : ""}</td><td>${m.silver != null ? Number(m.silver).toLocaleString("ja-JP") : ""}</td><td class="tx">${fl}</td><td class="tx">${esc(m.note || "")}</td></tr>`;
     });
-    el.innerHTML = `<table class="t hist"><thead><tr><th>#</th><th>時刻</th><th>使用</th><th>相手</th><th>キャラ</th><th>プレイヤー</th><th>先後</th><th>勝敗</th><th>DP増減</th><th>DP</th><th>順位</th><th>${targetRank()}位ライン</th><th>フラグ</th><th>メモ</th></tr></thead><tbody>${html}</tbody></table>`;
+    el.innerHTML = `<table class="t hist"><thead><tr><th>#</th>${hfTh("時刻", "date")}${hfTh("使用", "my")}${hfTh("相手", "opp")}${hfTh("キャラ", "char")}${hfTh("プレイヤー", "player")}${hfTh("先後", "first")}${hfTh("勝敗", "win")}<th>DP増減</th><th>DP</th><th>順位</th><th>${targetRank()}位ライン</th>${hfTh("フラグ", "flag")}<th>メモ</th></tr></thead><tbody>${html}</tbody></table>`;
   }
   $("#histSub").addEventListener("click", (e) => {
     if (e.target.closest("[data-player]")) {
