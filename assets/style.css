@@ -1889,10 +1889,10 @@ body::before {
   transition: none;
 }
 .dtlt {
-  min-width: 860px;
+  min-width: 900px;
 }
-.dtlt th:nth-child(n + 8),
-.dtlt td:nth-child(n + 8) {
+.dtlt th:nth-child(n + 9),
+.dtlt td:nth-child(n + 9) {
   min-width: 84px;
 }
 .dtlt.detail {
@@ -1902,7 +1902,7 @@ body::before {
   font-size: 10px;
   color: var(--muted);
 }
-.dtlt td:nth-child(n + 8) {
+.dtlt td:nth-child(n + 9) {
   min-width: 76px;
 }
 .dtlt.detail {
@@ -1919,7 +1919,7 @@ body::before {
   padding: 4px 3px;
   text-align: right;
 }
-.dtlt.detail td:nth-child(n + 8) {
+.dtlt.detail td:nth-child(n + 9) {
   min-width: 58px;
   padding: 6px 4px;
   font-size: 12px;
@@ -2020,4 +2020,8 @@ body::before {
 .notedlg .chip .c {
   color: var(--accent);
   opacity: 1;
+}
+.notes p.src {
+  color: var(--ink);
+  font-weight: 700;
 }

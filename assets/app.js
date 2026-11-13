@@ -2403,7 +2403,7 @@
   }
   /**
    * 使用デッキがベンチマーク外のとき、そのデッキを「その他」とみなした値を逆算する。
-   *   同デッキ勝率 q(その他→X) = 100 − q(X→その他)（X のベンチマークから deriveOther で求めた値）
+   *   他勝率 q(その他→X) = 100 − q(X→その他)（X のベンチマークから deriveOther で求めた値）
    *   環境勝率 ω(その他)       = (50 − Σ b·ω) ÷ b(その他)
    */
   function otherProfile() {
@@ -2424,7 +2424,7 @@
    * ベンチマークに登録されていないデッキをまとめた「その他」の値を逆算する。
    *   シェア      : 100% − 登録シェア合計
    *   環境勝率 ω  : Σ b·ω = 50% から
-   *   同デッキ勝率: ω自分 = Σ b·q から
+   *   他勝率: ω自分 = Σ b·q から
    */
   function deriveOther(E, Q, wMe, deck) {
     const L = Object.keys(E).filter((n) => n !== OTHER);
@@ -2452,7 +2452,7 @@
         res.qWhy =
           wMe == null
             ? "環境データに自デッキの環境勝率ωが必要です"
-            : "全行の同デッキ勝率が必要です";
+            : "全行の他勝率が必要です";
       const os = L.map((n) => num(E[n].omega));
       if (os.every((v) => v != null)) {
         const v =
@@ -2684,7 +2684,7 @@
   </div>
   <div class="notes">
    ${r.N < 30 ? `<p>試合数が${r.N}戦と少ないため、値は大きくぶれます。30戦以上を目安にしてください。</p>` : ""}
-   ${r.subs.length ? `<p>同デッキ勝率が未入力の相手（${r.subs.map(esc).join("、")}）は自分の勝率で代用しています。その分 Tech が0に近づきます。</p>` : ""}
+   ${r.subs.length ? `<p>他勝率が未入力の相手（${r.subs.map(esc).join("、")}）は自分の勝率で代用しています。その分 Tech が0に近づきます。</p>` : ""}
    ${r.od ? `<p>ベンチマークにないデッキ${r.pooled.length ? `（${r.pooled.map(esc).join("、")}）` : ""}は「その他」にまとめ、その他の値は登録デッキから逆算しています。${[r.od.bWhy, r.od.qWhy, r.od.oWhy].filter(Boolean).map(esc).join("。")}</p>` : ""}
    ${(() => {
      const bw = ms.filter((m) => !m.brick && Number(m.build) > 0).length,
@@ -2693,7 +2693,7 @@
        ? `<p>構築力は自己申告のフラグに基づくため、勝った試合ほど「構築のおかげ」と付けやすく、高めに出やすい傾向があります（構築で勝ち ${bw}件・構築で負け ${bl}件）。負けた試合にも同じ基準で付けると精度が上がります。</p>`
        : "";
    })()}
-   ${r.offBench ? `<p>使用デッキ（${esc(deck)}）はベンチマークにないため「その他」とみなし、同デッキ勝率と環境勝率を、ほかのデッキのベンチマークから逆算しています（「推」の印）。</p>` : ""}
+   ${r.offBench ? `<p>使用デッキ（${esc(deck)}）はベンチマークにないため「その他」とみなし、他勝率と環境勝率を、ほかのデッキのベンチマークから逆算しています（「推」の印）。</p>` : ""}
    ${!r.omSet ? `<p>ベンチマークの環境データに自デッキ（${esc(deck)}）の環境勝率ωがないため50%として扱い、基礎力は0になります。</p>` : ""}
    <p>事故の基準率 先攻 ${pct(r.aF)}・後攻 ${pct(r.aS)}${r.abarTheory ? "（理論値。未設定の側は実績）" : "（同デッキ・同バージョン全期間の実績）"}、事故時勝率 ${pct(r.xB)}、通常時勝率 ${pct(r.xN)}。プレイ力は Tech から構築力を引いた残りです。</p>
   </div>`;
@@ -2725,6 +2725,11 @@
       return `<td class="${v >= 0 ? "pos" : "neg"}${g1 ? " g1" : ""}" style="background:linear-gradient(90deg, transparent calc(50% - 0.5px), var(--line) calc(50% - 0.5px), var(--line) calc(50% + 0.5px), transparent calc(50% + 0.5px)), linear-gradient(90deg, transparent ${a}%, ${col} ${a}%, ${col} ${b}%, transparent ${b}%)">${sgn(v)}</td>`;
     };
     const nn = (n) => `<small style="color:var(--muted)"> (${n})</small>`;
+    // 先攻率：50%からの偏りを青の濃さで表示（多いほど先攻を引けている）
+    const fr = (f) =>
+      f == null
+        ? "<td>–</td>"
+        : `<td style="background:${soft("var(--accent)", Math.round(Math.min(1, Math.abs(f - 0.5) / 0.3) * 30))}">${pct(f, 0)}</td>`;
     const fA = ms.filter((m) => m.first),
       sA = ms.filter((m) => !m.first),
       rt = (a) => (a.length ? a.filter((m) => m.win).length / a.length : null);
@@ -2733,9 +2738,10 @@
       "試合",
       "実シェア",
       "自勝率",
+      "先攻率",
       "先攻勝率",
       "後攻勝率",
-      "同デッキ",
+      "他勝率",
     ];
     const thead = detail
       ? `<tr>${base7.map((h) => `<th rowspan="2">${h}</th>`).join("")}<th colspan="3" class="gh g1">Deck</th><th colspan="2" class="gh g1">Tech</th><th colspan="2" class="gh g1">Luck</th><th rowspan="2" class="g1">計</th></tr><tr><th class="sub g1">基礎力</th><th class="sub">環境強度</th><th class="sub">メタ相性</th><th class="sub g1">構築力</th><th class="sub">プレイ力</th><th class="sub g1">先後</th><th class="sub">事故</th></tr>`
@@ -2745,9 +2751,9 @@
       : new Set();
     $("#dtlTable").innerHTML =
       `<table class="t dtlt${detail ? " detail" : ""}"><thead>${thead}</thead><tbody>
-  ${r.R.map((x) => `<tr><td>${esc(x.n)}</td><td>${x.cnt}</td>${sb(x.s)}${ht(x.cnt ? x.p : null, x.cnt ? pct(x.p, 0) : "–")}${ht(x.nF ? x.rF : null, x.nF ? pct(x.rF, 0) + nn(x.nF) : "–")}${ht(x.nS ? x.rS : null, x.nS ? pct(x.rS, 0) + nn(x.nS) : "–")}${ht(x.q, pct(x.q, 0) + (x.qsub ? '<span class="sub-mark">代</span>' : x.est ? '<span class="sub-mark">推</span>' : ""))}${keys.map((k) => db(x[k], gstart.has(k))).join("")}</tr>`).join("")}
-  <tr class="sum"><td>合計</td><td>${r.N}</td><td>100%</td>${ht(r.pbar, pct(r.pbar, 0))}${ht(rt(fA), fA.length ? pct(rt(fA), 0) : "–")}${ht(rt(sA), sA.length ? pct(rt(sA), 0) : "–")}<td></td>${keys.map((k) => db(r[k], gstart.has(k))).join("")}</tr></tbody></table>
-  <div class="legend dtlleg"><span><i style="background:${soft("var(--accent)", 30)}"></i>実シェア＝棒の長さ</span><span><i style="background:${soft("var(--win)", 40)}"></i><i style="background:${soft("var(--loss)", 40)}"></i>勝率＝50%より上は緑・下は赤（濃いほど差が大きい）</span><span>Deck・Tech・Luck＝中央の線から右がプラス、左がマイナス</span></div>`;
+  ${r.R.map((x) => `<tr><td>${esc(x.n)}</td><td>${x.cnt}</td>${sb(x.s)}${ht(x.cnt ? x.p : null, x.cnt ? pct(x.p, 0) : "–")}${fr(x.cnt ? x.f : null)}${ht(x.nF ? x.rF : null, x.nF ? pct(x.rF, 0) + nn(x.nF) : "–")}${ht(x.nS ? x.rS : null, x.nS ? pct(x.rS, 0) + nn(x.nS) : "–")}${ht(x.q, pct(x.q, 0) + (x.qsub ? '<span class="sub-mark">代</span>' : x.est ? '<span class="sub-mark">推</span>' : ""))}${keys.map((k) => db(x[k], gstart.has(k))).join("")}</tr>`).join("")}
+  <tr class="sum"><td>合計</td><td>${r.N}</td><td>100%</td>${ht(r.pbar, pct(r.pbar, 0))}${fr(ms.length ? fA.length / ms.length : null)}${ht(rt(fA), fA.length ? pct(rt(fA), 0) : "–")}${ht(rt(sA), sA.length ? pct(rt(sA), 0) : "–")}<td></td>${keys.map((k) => db(r[k], gstart.has(k))).join("")}</tr></tbody></table>
+  <div class="legend dtlleg"><span>自勝率＝自分の勝率／他勝率＝自分と同じデッキを使う他のプレイヤーの、その対面での勝率（ベンチマーク）</span><span><i style="background:${soft("var(--accent)", 30)}"></i>実シェア＝棒の長さ</span><span>先攻率＝50%から離れるほど濃い青</span><span><i style="background:${soft("var(--win)", 40)}"></i><i style="background:${soft("var(--loss)", 40)}"></i>勝率＝50%より上は緑・下は赤（濃いほど差が大きい）</span><span>Deck・Tech・Luck＝中央の線から右がプラス、左がマイナス</span></div>`;
     $$("#dtlMode button").forEach((b) =>
       b.setAttribute(
         "aria-pressed",
@@ -2773,7 +2779,7 @@
   function renderBench(names) {
     const deck = cfg().myDeck;
     $("#benchSub").textContent = deck
-      ? `環境データ（共通） ＋ ${deck} の同デッキ勝率`
+      ? `環境データ（共通） ＋ ${deck} の他勝率`
       : "";
     if (benchDirty) return;
     const E = envRows(),
@@ -2809,7 +2815,7 @@
       f = (x) => (x == null ? "–" : Math.round(x * 10) / 10 + "");
     $("#benchTable").innerHTML =
       `<table class="t bt"><thead><tr><th></th><th class="gc" colspan="2">環境データ（共通）</th><th class="gm">${deck ? esc(deck) + (op ? " 用（その他として推計）" : " 用") : "デッキ別"}</th><th></th></tr>
-  <tr><th>デッキ</th><th>参照シェア%</th><th>環境勝率ω%</th><th>同デッキ勝率%</th><th></th></tr></thead><tbody>${all
+  <tr><th>デッキ</th><th>参照シェア%</th><th>環境勝率ω%</th><th>他勝率%</th><th></th></tr></thead><tbody>${all
     .map((n, i) => {
       const e = E[n] || {},
         self = n === deck;
