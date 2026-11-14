@@ -199,6 +199,25 @@ h2 {
   display: grid;
   gap: 0;
 }
+.cusum {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.cusum > div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.cusum-h {
+  font-size: 13px;
+  font-weight: 700;
+}
+.cusum-h span {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 6px;
+}
 .macdbar {
   display: flex;
   align-items: center;

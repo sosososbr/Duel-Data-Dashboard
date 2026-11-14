@@ -18,6 +18,10 @@
   /* ---------- 読み込みの確認 ---------- */
   // index.html と app.js の版が食い違う（片方だけ古いキャッシュが残っている等）と動かないため、先に確認する
   const REQUIRED_IDS = [
+    "chWr",
+    "wrNIn",
+    "chCuF",
+    "chCuS",
     "histFilters",
     "noteOpen",
     "oppNoteIn",
@@ -1755,20 +1759,19 @@
   /** 移動平均・ボリンジャーバンドの計算期間（戦）。設定で変えられる。 */
   const maN = () => clamp(Math.round(Number(cfg().maN) || 5), 2, 50);
   const bbN = () => clamp(Math.round(Number(cfg().bbN) || 10), 3, 50);
+  const wrN = () => clamp(Math.round(Number(cfg().wrN) || 15), 5, 50);
+  const PERIOD_INPUTS = [
+    ["#maNIn", "maN", maN],
+    ["#bbNIn", "bbN", bbN],
+    ["#wrNIn", "wrN", wrN],
+  ];
   function bindPeriodInputs() {
-    [
-      ["#maNIn", "maN"],
-      ["#bbNIn", "bbN"],
-    ].forEach(([id, key]) => {
+    PERIOD_INPUTS.forEach(([id, , get]) => {
       const el = $(id);
-      if (document.activeElement !== el)
-        el.value = key === "maN" ? maN() : bbN();
+      if (document.activeElement !== el) el.value = get();
     });
   }
-  [
-    ["#maNIn", "maN"],
-    ["#bbNIn", "bbN"],
-  ].forEach(([id, key]) =>
+  PERIOD_INPUTS.forEach(([id, key]) =>
     $(id).addEventListener("change", (e) => {
       const v = Math.round(Number(e.target.value));
       cfg()[key] = v > 0 ? v : null;
@@ -2177,7 +2180,119 @@
     ve.hidden = !parts.length;
     ve.className = "verdict" + (warn ? " warn" : "");
     ve.textContent = parts.join("　／　");
+    renderWinTrend(ms);
+    renderCusum(ms);
     renderFatigue();
+  }
+  /** 直近 N 戦の勝率と、Wilson の 95% 信頼区間。最初の N 戦は 5 戦目から累積で計算する。 */
+  function renderWinTrend(ms) {
+    const N = wrN(),
+      S0 = 5,
+      el = $("#chWr"),
+      ve = $("#wrVerdict");
+    if (ms.length < S0) {
+      el.innerHTML = `<div class="empty">${S0}戦以上で表示されます</div>`;
+      ve.hidden = true;
+      $("#wrSub").textContent = "";
+      return;
+    }
+    const vals = [],
+      hi = [],
+      lo = [];
+    let last;
+    for (let i = S0 - 1; i < ms.length; i++) {
+      const a = ms.slice(Math.max(0, i - N + 1), i + 1),
+        w = a.filter((m) => m.win).length,
+        [l, h] = wilson(w, a.length);
+      vals.push((100 * w) / a.length);
+      hi.push(100 * h);
+      lo.push(100 * l);
+      last = { w, n: a.length, l, h };
+    }
+    lineChart(el, vals, {
+      h: 220,
+      fixed: [0, 100],
+      ticks: [0, 25, 50, 75, 100],
+      ref: 50,
+      bands: [{ hi, lo, op: 0.2 }],
+      marks: switchMarks(ms, 1),
+      x0: S0,
+      fmt: (v) => v + "%",
+      label: "勝率の推移",
+    });
+    const pc = (x) => Math.round(100 * x) + "%",
+      st =
+        last.l > 0.5
+          ? "帯ごと50%より上：はっきり勝ち越し"
+          : last.h < 0.5
+            ? "帯ごと50%より下：はっきり負け越し"
+            : "帯が50%をまたぐ：勝ち越し・負け越しとは言い切れない";
+    $("#wrSub").textContent = `横軸は期間内の試合数（${S0}戦目から）`;
+    ve.hidden = false;
+    ve.className = "verdict" + (last.h < 0.5 ? " warn" : "");
+    ve.textContent = `直近${last.n}戦 ${pc(last.w / last.n)}（95%区間 ${pc(last.l)}〜${pc(last.h)}）　${st}`;
+  }
+  /**
+   * 先攻・後攻ごとの CUSUM（平均勝率からのずれの累積）。
+   * 絶対値が最大の点を変化点の候補とし、前後の勝率差を2標本の比率の検定（z ≥ 1.64）で確かめる。
+   */
+  function renderCusum(ms) {
+    const MINSIDE = 5;
+    [
+      [true, "F"],
+      [false, "S"],
+    ].forEach(([first, k]) => {
+      const el = $("#chCu" + k),
+        ve = $("#cuVer" + k),
+        sub = $("#cuSub" + k),
+        idx = [];
+      ms.forEach((m, i) => {
+        if (!!m.first === first) idx.push(i);
+      });
+      const n = idx.length,
+        wins = idx.map((i) => (ms[i].win ? 1 : 0)),
+        W = wins.reduce((a, b) => a + b, 0);
+      sub.textContent = n ? `${W}勝${n - W}敗・${Math.round((100 * W) / n)}%` : "";
+      if (n < MINSIDE * 2) {
+        el.innerHTML = `<div class="empty">${MINSIDE * 2}戦以上で表示されます</div>`;
+        ve.hidden = true;
+        return;
+      }
+      const base = W / n,
+        cs = [0];
+      let c = 0;
+      wins.forEach((x) => cs.push((c += x - base)));
+      // cs[j] = j 戦目までのずれの累積。変化点 j は「j 戦目まで」と「j+1 戦目から」の境目
+      let kb = -1;
+      for (let j = MINSIDE; j <= n - MINSIDE; j++)
+        if (kb < 0 || Math.abs(cs[j]) > Math.abs(cs[kb])) kb = j;
+      const w1 = wins.slice(0, kb).reduce((a, b) => a + b, 0),
+        w2 = W - w1,
+        n1 = kb,
+        n2 = n - kb,
+        p1 = w1 / n1,
+        p2 = w2 / n2,
+        se = Math.sqrt(base * (1 - base) * (1 / n1 + 1 / n2)),
+        z = se ? Math.abs(p1 - p2) / se : 0,
+        sig = z >= 1.64,
+        down = p2 < p1;
+      lineChart(el, cs, {
+        h: 180,
+        bands: [],
+        ref: 0,
+        minStep: 1,
+        x0: 0,
+        marks: [{ i: kb, label: sig ? "変化点" : "最大の山（参考）" }],
+        fmt: (v) => (v > 0 ? "+" : "") + Math.round(v * 10) / 10,
+        label: (first ? "先攻" : "後攻") + "の変化点",
+      });
+      const pc = (x) => Math.round(100 * x) + "%";
+      ve.hidden = false;
+      ve.className = "verdict" + (sig && down ? " warn" : "");
+      ve.textContent = sig
+        ? `${kb}戦目（全体${idx[kb - 1] + 1}戦目）を境に ${pc(p1)} → ${pc(p2)}（${n1}戦・${n2}戦）。${down ? "ここから勝てなくなっている" : "ここから勝てるようになっている"}`
+        : `はっきりした変化点はなし（最も差が大きい境目：${kb}戦目、${pc(p1)} → ${pc(p2)}）`;
+    });
   }
   function renderEnv() {
     const ms = windowMatches();

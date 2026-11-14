@@ -20,8 +20,8 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261114a" />
-    <script src="assets/app.js?v=20261114a" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261115a" />
+    <script src="assets/app.js?v=20261115a" defer></script>
   </head>
   <body>
     <header class="top">
@@ -447,6 +447,65 @@
                 </p>
                 <p>
                   どちらも参考指標。少ない試合数ではたまたまの連勝・連敗にも反応するので、休憩や構築見直しのきっかけとして使うのがおすすめ。
+                </p>
+              </details>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <h2>勝率の推移</h2>
+                <span class="sub" id="wrSub"></span>
+              </div>
+              <div class="legend">
+                <span
+                  ><i style="background: var(--accent)"></i>直近<input
+                    class="pn"
+                    id="wrNIn"
+                    type="number"
+                    inputmode="numeric"
+                    min="5"
+                    max="50"
+                    aria-label="勝率の試合数"
+                  />戦の勝率</span
+                ><span
+                  ><i style="background: var(--c2); opacity: 0.3"></i
+                  >95%信頼区間</span
+                ><span>実線＝50%</span>
+              </div>
+              <div class="chart" id="chWr"></div>
+              <div class="verdict" id="wrVerdict"></div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <h2>勝率の変化点（先攻・後攻）</h2>
+                <span class="sub"
+                  >平均勝率からのずれを足し上げ、山や谷の頂点を「勝率が変わった試合」とみなします</span
+                >
+              </div>
+              <div class="cusum">
+                <div>
+                  <div class="cusum-h">先攻 <span id="cuSubF"></span></div>
+                  <div class="chart" id="chCuF"></div>
+                  <div class="verdict" id="cuVerF"></div>
+                </div>
+                <div>
+                  <div class="cusum-h">後攻 <span id="cuSubS"></span></div>
+                  <div class="chart" id="chCuS"></div>
+                  <div class="verdict" id="cuVerS"></div>
+                </div>
+              </div>
+              <details class="more explain">
+                <summary>信頼区間・変化点の見方</summary>
+                <p>
+                  <b>信頼区間</b>：直近の試合数から見て、本当の勝率がありそうな範囲（95%）。帯が
+                  50% をまたいでいる間は、勝ち越し・負け越しのどちらとも言い切れません。帯ごと
+                  50% より上（下）にあるときが、はっきりした好調（不調）です。試合数を増やすと帯は細くなりますが、変化への反応は遅くなります。
+                </p>
+                <p>
+                  <b>変化点</b>：先攻・後攻それぞれで、期間内の平均勝率からのずれを試合ごとに足し上げた線（CUSUM）。平均より勝っている間は上り坂、負けている間は下り坂になります。山の頂点は「そこから勝てなくなった」、谷の底は「そこから勝てるようになった」試合です。前後の勝率の差が偶然では出にくい大きさ（片側
+                  5% 相当）のときだけ「変化点」とし、それ以外は参考として表示します。
+                </p>
+                <p>
+                  横軸は先攻（後攻）だけで数えた試合数です。判定には前後それぞれ 5 戦以上が必要です。
                 </p>
               </details>
             </div>
