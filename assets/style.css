@@ -2247,3 +2247,34 @@ body::before {
 .mydeck select,#myDeck,#myVer{flex:0 1 auto;min-width:0;max-width:120px;padding:3px 6px;font-size:12px;border-radius:6px}
 #myVer{max-width:90px}
 @media (max-width:620px){.mydeck{flex:0 0 auto;order:0}#myDeck{flex:0 1 auto;max-width:120px}}
+
+/* 縦に長い一覧は枠の中でスクロール（見出しは上に固定） */
+.scrollbox{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin:0}
+.scrollbox:empty{display:none}
+.scrollbox.tall{max-height:min(70vh,640px)}
+.scrollbox table.t thead tr:first-child th{position:sticky;top:0;z-index:2;background:var(--panel);box-shadow:inset 0 -1px 0 var(--line)}
+.scrollbox table.t thead tr:first-child th:first-child{z-index:3}
+.wr.scrollbox{padding:10px 12px}
+/* 戦績一覧：よく使う「相手」「キャラ」を目立たせる */
+.hfquick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hfbtn.hfq{font-size:12px;padding:3px 10px;margin:0;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink)}
+.hfbtn.hfq.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.hist th.key{color:var(--ink)}
+.hist th.key .hfbtn{color:var(--accent)}
+.hist th.key .hfbtn.on{color:var(--accent-ink)}
+.hist td.key{font-weight:600}
+.hist td.key .dd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:1px;box-shadow:0 0 0 1px var(--sep)}
+
+/* 相手キャラの過去の対戦（入力パネル） */
+.charhist{display:grid;gap:6px;margin-top:-2px;padding:8px 10px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--chip);font-size:12px}
+.charhist .ch-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.charhist .ch-h .linkbtn{margin-left:auto;font-size:12px}
+.charhist .ch-dks{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted)}
+.charhist .dd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0;box-shadow:0 0 0 1px var(--sep)}
+.charhist ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.charhist li{display:grid;grid-template-columns:auto auto auto auto minmax(0,1fr);gap:8px;align-items:baseline}
+.charhist .ch-t{font-family:var(--f-num);color:var(--muted)}
+.charhist .ch-o{font-weight:600;white-space:nowrap}
+.charhist .w{color:var(--win);font-weight:700}.charhist .l{color:var(--loss);font-weight:700}
+.charhist .ch-n{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.charhist .ch-more{color:var(--muted)}

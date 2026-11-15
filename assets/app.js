@@ -22,6 +22,7 @@
     "timeBandSeg",
     "chWr",
     "chWrTrend",
+    "charHist",
     "goalMini",
     "goalRow",
     "goalClose",
@@ -923,7 +924,55 @@
       )
       .map((n) => ({ n, c: cnt[n] || 0 }));
   }
+  /* ---------- 相手キャラを入れたら、そのキャラとの過去の対戦を小さく表示 ---------- */
+  function renderCharHist() {
+    const box = $("#charHist"),
+      c = $("#charIn").value.trim();
+    const past = c
+      ? D()
+          .matches.filter((m) => m.char === c && m.id !== F.id)
+          .sort((a, b) => b.ts - a.ts)
+      : [];
+    if (!past.length) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    const w = past.filter((m) => m.win).length,
+      dk = {};
+    past.forEach((m) => (dk[m.opp] = (dk[m.opp] || 0) + 1));
+    const decks = Object.entries(dk)
+      .sort((a, b) => b[1] - a[1])
+      .map(
+        ([d, n]) =>
+          `<span class="ch-dk"><i class="dd" style="background:${deckColor(d)}"></i>${esc(d)}${n > 1 ? `×${n}` : ""}</span>`,
+      )
+      .join("");
+    const rows = past
+      .slice(0, 5)
+      .map((m) => {
+        const d = new Date(m.ts);
+        return `<li><span class="ch-t">${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</span><span class="ch-o"><i class="dd" style="background:${deckColor(m.opp)}"></i>${esc(m.opp)}</span><span>${m.first ? "先" : "後"}</span><span class="${m.win ? "w" : "l"}">${m.win ? "○" : "×"}</span><span class="ch-n">${esc(m.note || "")}</span></li>`;
+      })
+      .join("");
+    box.hidden = false;
+    box.innerHTML = `<div class="ch-h"><b>${esc(c)}</b>との対戦 ${past.length}戦 ${w}勝${past.length - w}敗<button class="linkbtn" type="button" data-charjump="${esc(c)}">戦績で全部見る →</button></div><div class="ch-dks">${decks}</div><ul>${rows}</ul>${past.length > 5 ? `<div class="ch-more">ほか${past.length - 5}戦</div>` : ""}`;
+  }
+  $("#charIn").addEventListener("input", renderCharHist);
+  $("#charHist").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-charjump]");
+    if (!b) return;
+    UI.hf = Object.assign({}, UI.hf, { char: new Set([b.dataset.charjump]) });
+    UI.player = null;
+    if (location.hash === "#history") render();
+    else location.hash = "history";
+    setTimeout(() => {
+      const t = $("#histTable");
+      if (t) t.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 120);
+  });
   function renderForm() {
+    renderCharHist();
     const list = oppOrder();
     $("#oppChips").classList.toggle("editing", !!UI.oppEdit);
     $("#oppEdit").textContent = UI.oppEdit ? "完了" : "候補を編集";
@@ -1163,6 +1212,11 @@
         "）。通信を確認してもう一度押してください。";
       return;
     }
+    // 新しく入力したキャラは候補に登録する（相手デッキと同じ扱い）
+    if (m.char && !(cfg().chars || []).includes(m.char)) {
+      cfg().chars = (cfg().chars || []).concat(m.char);
+      saveCfg();
+    }
     resetForm();
     toast(wasEdit ? "更新しました" : "記録しました");
     render();
@@ -1333,18 +1387,20 @@
       ),
     );
   }
+  const HF_KEYS = ["opp", "char"]; // よく絞り込む列（見た目で強調）
   const hfTh = (label, key) =>
-    `<th class="hfth">${label}<button class="hfbtn${UI.hf[key] ? " on" : ""}" data-hf="${key}" aria-label="${HF_COLS[key].label}で絞り込む" title="${HF_COLS[key].label}で絞り込む">▾</button></th>`;
+    `<th class="hfth${HF_KEYS.includes(key) ? " key" : ""}">${label}<button class="hfbtn${UI.hf[key] ? " on" : ""}" data-hf="${key}" aria-label="${HF_COLS[key].label}で絞り込む" title="${HF_COLS[key].label}で絞り込む">▾</button></th>`;
   function renderHFBar() {
     const act = Object.entries(UI.hf).filter(([, set]) => set);
-    $("#histFilters").innerHTML = act.length
+    const quick = `<span class="hfquick">${HF_KEYS.map((k) => `<button class="hfbtn hfq${UI.hf[k] ? " on" : ""}" data-hf="${k}" aria-label="${HF_COLS[k].label}で絞り込む">${HF_COLS[k].label}で絞り込む ▾</button>`).join("")}</span>`;
+    $("#histFilters").innerHTML = quick + (act.length
       ? act
           .map(
             ([k, set]) =>
               `<span class="hfchip"><b>${HF_COLS[k].label}</b>：${Array.from(set).map(esc).join("、")}<button data-hfx="${k}" aria-label="${HF_COLS[k].label}の絞り込みを外す">×</button></span>`,
           )
           .join("") + '<button class="linkbtn" data-hfx="*">すべて解除</button>'
-      : "";
+      : "");
   }
   let hfOpen = null;
   function closeHF() {
@@ -1482,7 +1538,7 @@
         .filter(Boolean)
         .join(" ");
       const d = new Date(m.ts);
-      html += `<tr class="m" data-id="${esc(m.id)}"><td>${idx[m.id]}</td><td>${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</td><td class="tx">${esc(m.my)}${m.ver ? `<small style="color:var(--muted)"> ${esc(m.ver)}</small>` : ""}</td><td class="tx">${esc(m.opp)}</td><td class="tx">${esc(m.char || "")}</td><td class="tx">${esc(m.player || "")}</td><td>${m.first ? "先" : "後"}</td><td class="${m.win ? "w" : "l"}">${m.win ? "○" : "×"}</td><td>${fmtPt(Number(m.pt) || 0)}</td><td>${(cum[m.id] || 0).toLocaleString("ja-JP")}${m.dp != null && m.dp !== "" ? '<span class="sub-mark" title="実際のDPで補正">実</span>' : ""}</td><td>${m.rank != null ? m.rank : ""}</td><td>${m.silver != null ? Number(m.silver).toLocaleString("ja-JP") : ""}</td><td class="tx">${fl}</td><td class="tx">${esc(m.note || "")}</td></tr>`;
+      html += `<tr class="m" data-id="${esc(m.id)}"><td>${idx[m.id]}</td><td>${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}</td><td class="tx">${esc(m.my)}${m.ver ? `<small style="color:var(--muted)"> ${esc(m.ver)}</small>` : ""}</td><td class="tx key"><i class="dd" style="background:${deckColor(m.opp)}"></i>${esc(m.opp)}</td><td class="tx key">${esc(m.char || "")}</td><td class="tx">${esc(m.player || "")}</td><td>${m.first ? "先" : "後"}</td><td class="${m.win ? "w" : "l"}">${m.win ? "○" : "×"}</td><td>${fmtPt(Number(m.pt) || 0)}</td><td>${(cum[m.id] || 0).toLocaleString("ja-JP")}${m.dp != null && m.dp !== "" ? '<span class="sub-mark" title="実際のDPで補正">実</span>' : ""}</td><td>${m.rank != null ? m.rank : ""}</td><td>${m.silver != null ? Number(m.silver).toLocaleString("ja-JP") : ""}</td><td class="tx">${fl}</td><td class="tx">${esc(m.note || "")}</td></tr>`;
     });
     el.innerHTML = `<table class="t hist"><thead><tr><th>#</th>${hfTh("時刻", "date")}${hfTh("使用", "my")}${hfTh("相手", "opp")}${hfTh("キャラ", "char")}${hfTh("プレイヤー", "player")}${hfTh("先後", "first")}${hfTh("勝敗", "win")}<th>DP増減</th><th>DP</th><th>順位</th><th>${targetRank()}位ライン</th>${hfTh("フラグ", "flag")}<th>メモ</th></tr></thead><tbody>${html}</tbody></table>`;
   }

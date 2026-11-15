@@ -20,8 +20,8 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261115j" />
-    <script src="assets/app.js?v=20261115j" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261116b" />
+    <script src="assets/app.js?v=20261116b" defer></script>
   </head>
   <body>
     <header class="top">
@@ -180,6 +180,7 @@
               /><datalist id="charList"></datalist>
             </div>
           </div>
+          <div class="charhist" id="charHist" hidden></div>
           <div class="row2">
             <div class="field">
               <label class="lbl" for="playerIn">相手プレイヤー</label
@@ -366,7 +367,7 @@
                 <span class="sub" id="verSub"></span>
               </div>
               <div class="tblw" id="verTable"></div>
-              <div class="tblw" id="verMatrix"></div>
+              <div class="tblw scrollbox" id="verMatrix"></div>
             </div>
             <div class="card">
               <div class="card-h">
@@ -374,7 +375,7 @@
                 <span class="sub" id="histSub"></span>
               </div>
               <div class="hfbar" id="histFilters"></div>
-              <div class="tblw" id="histTable"></div>
+              <div class="tblw scrollbox tall" id="histTable"></div>
             </div>
             <div class="card">
               <div class="card-h">
@@ -383,7 +384,7 @@
                   >名前を押すと、その相手との対戦だけに絞ります</span
                 >
               </div>
-              <div class="tblw" id="playerTable"></div>
+              <div class="tblw scrollbox" id="playerTable"></div>
             </div>
           </section>
 
@@ -603,7 +604,7 @@
                   >95%信頼区間</span
                 ><span>縦線＝50%</span>
               </div>
-              <div class="wr" id="chWr"></div>
+              <div class="wr scrollbox" id="chWr"></div>
             </div>
           </section>
 
@@ -619,7 +620,7 @@
                   ><button data-m="1">細かい項目も表示</button></span
                 >
               </div>
-              <div class="tblw" id="dtlTable"></div>
+              <div class="tblw scrollbox" id="dtlTable"></div>
             </div>
             <div class="card">
               <div class="card-h">
