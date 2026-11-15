@@ -246,7 +246,7 @@ h2 {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  flex: 0 1 400px;
+  flex: 0 1 360px;
   justify-content: flex-end;
 }
 .pair {
@@ -1813,6 +1813,20 @@ body::before {
 }
 
 /* 順位帯の区切り設定 */
+.goalmini{margin-left:auto;flex:0 1 auto;max-width:230px;min-width:0;display:grid;gap:1px;text-align:left;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--chip);color:var(--ink);font:inherit;cursor:pointer}
+.goalmini .gm-main{display:flex;align-items:baseline;gap:3px;white-space:nowrap}
+.goalmini b{font-family:var(--f-num);font-size:15px}
+.goalmini .k{font-size:11px;color:var(--muted)}
+.goalmini .gm-sep{margin-left:6px}
+.goalmini b small{font-size:12px;margin-left:1px}
+.goalmini .gm-set{font-size:13px;color:var(--accent)}
+.goalmini .gm-sub{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goalmini .warn{color:var(--loss)}.goalmini .ok{color:var(--win)}
+.goalrow{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding-block:0 10px;font-size:12px;color:var(--muted)}
+.goalrow label{display:flex;align-items:center;gap:5px}
+.goalrow input{font-family:var(--f-num);font-size:13px;padding:3px 6px;min-width:0}
+#goalDpIn{width:6.5em}#goalEndIn{width:12.5em}
+@media (max-width:620px){.goalmini{order:3;flex-basis:100%;max-width:none;margin-left:0}}
 .rs-time .rsr {
   grid-template-columns: minmax(0, 8.5em) minmax(0, 1fr) 3.2em;
 }
@@ -2226,3 +2240,10 @@ body::before {
   display: flex;
   justify-content: flex-end;
 }
+
+/* 使用デッキ・バージョンはたまにしか変えないので小さく表示 */
+.mydeck{flex:0 0 auto;gap:4px}
+.mydeck label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mydeck select,#myDeck,#myVer{flex:0 1 auto;min-width:0;max-width:120px;padding:3px 6px;font-size:12px;border-radius:6px}
+#myVer{max-width:90px}
+@media (max-width:620px){.mydeck{flex:0 0 auto;order:0}#myDeck{flex:0 1 auto;max-width:120px}}

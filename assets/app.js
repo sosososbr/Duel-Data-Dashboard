@@ -22,6 +22,12 @@
     "timeBandSeg",
     "chWr",
     "chWrTrend",
+    "goalMini",
+    "goalRow",
+    "goalClose",
+    "goalDpIn",
+    "goalEndIn",
+    "goalGphIn",
     "wrNIn",
     "chCuF",
     "chCuS",
@@ -762,6 +768,7 @@
   });
   /* ---------- ヘッダー（常時表示） ---------- */
   function renderHeader() {
+    renderGoal();
     const c = cfg(),
       sel = $("#myDeck");
     const opts = ['<option value="">（未設定）</option>'].concat(
@@ -2187,6 +2194,78 @@
     renderCusum(ms);
     renderFatigue();
   }
+  /* ---------- 目標DPまでのペース（上部に常時表示。終了日時までに必要な DP／時間と勝率） ---------- */
+  const GOAL_END_DEFAULT = "2026-11-16T14:00";
+  const goalCfg = () => {
+    const c = cfg();
+    return {
+      dp: num(c.goalDp),
+      end: c.goalEnd || GOAL_END_DEFAULT,
+      gph: clamp(Math.round(Number(c.goalGph) || 5), 1, 20),
+    };
+  };
+  [
+    ["#goalDpIn", "goalDp"],
+    ["#goalEndIn", "goalEnd"],
+    ["#goalGphIn", "goalGph"],
+  ].forEach(([id, key]) =>
+    $(id).addEventListener("change", (e) => {
+      const v = e.target.value.trim();
+      cfg()[key] = v === "" ? null : key === "goalEnd" ? v : Number(v);
+      saveCfg();
+    }),
+  );
+  function toggleGoalRow(open) {
+    const row = $("#goalRow"),
+      b = $("#goalMini");
+    row.hidden = open == null ? !row.hidden : !open;
+    b.setAttribute("aria-expanded", String(!row.hidden));
+    if (!row.hidden && goalCfg().dp == null) $("#goalDpIn").focus();
+  }
+  $("#goalMini").addEventListener("click", () => toggleGoalRow());
+  $("#goalClose").addEventListener("click", () => toggleGoalRow(false));
+  function renderGoal() {
+    const g = goalCfg(),
+      out = $("#goalMini");
+    [
+      ["#goalDpIn", g.dp == null ? "" : g.dp],
+      ["#goalEndIn", g.end],
+      ["#goalGphIn", g.gph],
+    ].forEach(([id, v]) => {
+      const el = $(id);
+      if (document.activeElement !== el) el.value = v;
+    });
+    const fmt = (v) => Math.round(v).toLocaleString("ja-JP");
+    if (g.dp == null) {
+      out.innerHTML =
+        '<span class="gm-main"><span class="k">目標DP</span><b class="gm-set">設定する</b></span><span class="gm-sub">目標・終了日時・1時間の試合数から、必要なペースを表示</span>';
+      return;
+    }
+    const cur = curPt(),
+      need = g.dp - cur,
+      remH = (new Date(g.end).getTime() - Date.now()) / 3600000;
+    if (need <= 0) {
+      out.innerHTML = `<span class="gm-main"><b class="ok">目標達成</b></span><span class="gm-sub">目標${fmt(g.dp)}を+${fmt(-need)}上回っています</span>`;
+      return;
+    }
+    if (!isFinite(remH) || remH <= 0) {
+      out.innerHTML = `<span class="gm-main"><b class="warn">終了日時を過ぎています</b></span><span class="gm-sub">目標${fmt(g.dp)}まであと+${fmt(need)}</span>`;
+      return;
+    }
+    const h = Math.floor(remH),
+      mi = Math.floor((remH - h) * 60),
+      perH = need / remH,
+      p = 0.5 + perH / (2 * DEFAULT_DP_CHANGE * g.gph),
+      games = Math.floor(remH * g.gph),
+      net = Math.ceil(need / DEFAULT_DP_CHANGE);
+    const sub = `あと+${fmt(need)} ・ 残り${h}時間${mi}分`;
+    out.title = `目標${fmt(g.dp)}・終了${g.end.replace("T", " ")}・1時間${g.gph}戦で計算（約${games}戦で${net}勝ち越し）。押すと設定を開きます`;
+    out.innerHTML =
+      p <= 1
+        ? `<span class="gm-main"><span class="k">必要</span><span class="k">1h</span><b>+${fmt(perH)}</b><span class="k">DP↑</span><span class="k gm-sep">勝率</span><b class="${p > 0.65 ? "warn" : ""}">${Math.ceil(p * 100)}%<small>↑</small></b></span><span class="gm-sub">${sub}</span>`
+        : `<span class="gm-main"><span class="k">必要</span><span class="k">1h</span><b>+${fmt(perH)}</b><span class="k">DP↑</span><b class="warn gm-sep">${g.gph}戦/時では全勝でも不足</b></span><span class="gm-sub">${sub} ・ 1時間${Math.ceil(perH / DEFAULT_DP_CHANGE)}戦以上必要</span>`;
+  }
+  setInterval(renderGoal, 60000);
   /** 直近 N 戦の勝率と、Wilson の 95% 信頼区間。最初の N 戦は 5 戦目から累積で計算する。 */
   function renderWinTrend(ms) {
     const N = wrN(),

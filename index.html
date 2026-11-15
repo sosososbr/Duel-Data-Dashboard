@@ -20,14 +20,21 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261115e" />
-    <script src="assets/app.js?v=20261115e" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261115j" />
+    <script src="assets/app.js?v=20261115j" defer></script>
   </head>
   <body>
     <header class="top">
       <div class="wrap top-in">
         <div class="brand">Duel Data <span>Dashboard</span></div>
-        <a class="spark" id="spark" href="#charts" title="DP推移を開く"></a
+        <button
+          class="goalmini"
+          id="goalMini"
+          type="button"
+          aria-expanded="false"
+          aria-controls="goalRow"
+          title="目標DPの設定を開く"
+        ></button
         ><a
           class="dtlmini"
           id="dtlMini"
@@ -39,7 +46,7 @@
         </button>
         <div class="mydeck">
           <label for="myDeck">使用デッキ</label
-          ><select id="myDeck"></select
+          ><select id="myDeck" aria-label="使用デッキ" title="使用デッキ"></select
           ><select
             id="myVer"
             aria-label="構築バージョン"
@@ -61,6 +68,7 @@
         <button class="btn small" id="newVerAdd">切り替え</button>
         <button class="btn small" id="newVerCancel">やめる</button>
       </div>
+      <div class="wrap goalrow" id="goalRow" hidden><label>目標<input id="goalDpIn" type="number" inputmode="numeric" min="0" step="1000" placeholder="40000" aria-label="目標DP">DP</label><label>終了<input id="goalEndIn" type="datetime-local" aria-label="終了日時"></label><label>1時間<input class="pn" id="goalGphIn" type="number" inputmode="numeric" min="1" max="20" aria-label="1時間あたりの試合数">戦</label><button class="btn small" id="goalClose" type="button">閉じる</button></div>
       <div class="wrap stats" id="stats"></div>
     </header>
     <div id="banner"></div>
@@ -383,9 +391,10 @@
             <div class="filters" data-filters></div>
             <div class="card">
               <div class="card-h">
-                <h2>DP推移とMACD</h2>
+                <h2>DP推移</h2>
                 <span class="sub" id="ptSub"></span>
               </div>
+              
               <div class="legend">
                 <span><i style="background: var(--accent)"></i>DP</span
                 ><span
