@@ -30,6 +30,24 @@
   --c5: #b88a00;
   --c6: #c2185b;
   --c0: #9aa3b2;
+  --dk1: #e0569a;
+  --dk2: #7b3fc4;
+  --dk3: #e67a1a;
+  --dk4: #2f6fd6;
+  --dk5: #707987;
+  --dk6: #e9c21c;
+  --dk7: #f7f6f0;
+  --dk8: #d23a2f;
+  --dp1: #2f9e44;
+  --dp2: #0f8f8f;
+  --dp3: #8d5a2b;
+  --dp4: #7d8c1c;
+  --dp5: #5bb894;
+  --dp6: #a3865e;
+  --dp7: #2e6b3a;
+  --dp8: #93b828;
+  --dk-other: #c9ced8;
+  --sep: #1b1f27;
   --silver: #7a8394;
   --page: #edf0f5;
   --tab-ink: #2b55c0;
@@ -62,6 +80,24 @@
     --c5: #e3c04f;
     --c6: #f07aa6;
     --c0: #5e6a7e;
+    --dk1: #f08cbf;
+    --dk2: #b48ae8;
+    --dk3: #f5a35a;
+    --dk4: #7aa8f2;
+    --dk5: #a3abb8;
+    --dk6: #f0d050;
+    --dk7: #eef0f4;
+    --dk8: #f06a5f;
+    --dp1: #5cc177;
+    --dp2: #4cc7c7;
+    --dp3: #c08a5a;
+    --dp4: #b4c24a;
+    --dp5: #8fd9bb;
+    --dp6: #cdb48c;
+    --dp7: #74b083;
+    --dp8: #c2e05a;
+    --dk-other: #59647a;
+    --sep: #05070b;
     --silver: #c4cbd6;
     --page: #0f141c;
     --tab-ink: #9db8ff;
@@ -95,6 +131,24 @@
   --c5: #e3c04f;
   --c6: #f07aa6;
   --c0: #5e6a7e;
+  --dk1: #f08cbf;
+  --dk2: #b48ae8;
+  --dk3: #f5a35a;
+  --dk4: #7aa8f2;
+  --dk5: #a3abb8;
+  --dk6: #f0d050;
+  --dk7: #eef0f4;
+  --dk8: #f06a5f;
+  --dp1: #5cc177;
+  --dp2: #4cc7c7;
+  --dp3: #c08a5a;
+  --dp4: #b4c24a;
+  --dp5: #8fd9bb;
+  --dp6: #cdb48c;
+  --dp7: #74b083;
+  --dp8: #c2e05a;
+  --dk-other: #59647a;
+  --sep: #05070b;
   --silver: #c4cbd6;
   --page: #0f141c;
   --tab-ink: #9db8ff;
@@ -978,7 +1032,7 @@ input:not([type]) {
 }
 .wrr {
   display: grid;
-  grid-template-columns: minmax(0, 7em) minmax(0, 1fr) 4.6em;
+  grid-template-columns: minmax(0, 8em) minmax(0, 1fr) 4.6em;
   gap: 10px;
   align-items: center;
 }
@@ -990,6 +1044,7 @@ input:not([type]) {
 }
 .wrr .n small {
   display: block;
+  white-space: normal;
   font-size: 11px;
   color: var(--muted);
   font-family: var(--f-num);
@@ -1119,6 +1174,19 @@ input:not([type]) {
   border-radius: 4px;
   overflow: hidden;
   background: var(--chip);
+}
+.rsbar i {
+  box-sizing: border-box;
+}
+.rsbar i + i {
+  border-left: 1.5px solid var(--sep);
+}
+.legend .minor {
+  opacity: 0.55;
+}
+.legend i.lgw,
+.lgw {
+  box-shadow: inset 0 0 0 1px var(--muted);
 }
 .rsbar i {
   display: flex;
@@ -1745,6 +1813,9 @@ body::before {
 }
 
 /* 順位帯の区切り設定 */
+.rs-time .rsr {
+  grid-template-columns: minmax(0, 8.5em) minmax(0, 1fr) 3.2em;
+}
 .rankcfg {
   display: flex;
   align-items: center;

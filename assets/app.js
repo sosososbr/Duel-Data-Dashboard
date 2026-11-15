@@ -18,7 +18,10 @@
   /* ---------- 読み込みの確認 ---------- */
   // index.html と app.js の版が食い違う（片方だけ古いキャッシュが残っている等）と動かないため、先に確認する
   const REQUIRED_IDS = [
+    "chTime",
+    "timeBandSeg",
     "chWr",
+    "chWrTrend",
     "wrNIn",
     "chCuF",
     "chCuS",
@@ -2188,7 +2191,7 @@
   function renderWinTrend(ms) {
     const N = wrN(),
       S0 = 5,
-      el = $("#chWr"),
+      el = $("#chWrTrend"),
       ve = $("#wrVerdict");
     if (ms.length < S0) {
       el.innerHTML = `<div class="empty">${S0}戦以上で表示されます</div>`;
@@ -2298,6 +2301,7 @@
     const ms = windowMatches();
     stackChart($("#chStack"), ms);
     rankShare(ms);
+    timeShare(ms);
     const by = {};
     ms.forEach((m) => {
       (by[m.opp] = by[m.opp] || []).push(m);
@@ -2338,6 +2342,77 @@
       .join("");
   }
 
+  /* ---------- デッキの色（主要デッキは固定、それ以外は出現数の多い順に色を割り当て） ---------- */
+  const DECK_COLOR = {
+    メメント: 1,
+    黒魔導: 2,
+    ホルス: 3,
+    氷水: 4,
+    サイバー: 5,
+    黄金櫃: 6,
+    スターダスト: 7,
+    スネークアイ: 8,
+    蛇眼: 8,
+  };
+  /** 帯グラフで常に個別表示する主要デッキ（この順で並べる）。それ以外は「その他」にまとめる。 */
+  const MAIN_DECKS = [
+    "メメント",
+    "黒魔導",
+    "ホルス",
+    "氷水",
+    "サイバー",
+    "黄金櫃",
+    "スターダスト",
+    "蛇眼",
+  ];
+  const mainKey = (opp) =>
+    opp === "スネークアイ" ? "蛇眼" : MAIN_DECKS.includes(opp) ? opp : "その他";
+  const isMain = (opp) => mainKey(opp) !== "その他";
+  const LIGHT_DECKS = new Set([6, 7]); // 明るい色（文字を暗くする）
+  const POOL_N = 8;
+  function deckColorIndex() {
+    const cnt = {};
+    D().matches.forEach((m) => (cnt[m.opp] = (cnt[m.opp] || 0) + 1));
+    const others = Object.keys(cnt)
+      .filter((k) => !DECK_COLOR[k])
+      .sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b, "ja"));
+    const idx = {};
+    others.forEach((k, i) => (idx[k] = i));
+    return idx;
+  }
+  /** デッキ名 → 塗りの色。"その他" は斜線の模様（HTML の帯）か薄い灰色（SVG）。 */
+  function deckColor(name, svg) {
+    if (name === "その他")
+      return svg
+        ? "var(--dk-other)"
+        : "repeating-linear-gradient(135deg, var(--dk-other) 0 4px, var(--chip) 4px 7px)";
+    const f = DECK_COLOR[name];
+    if (f) return `var(--dk${f})`;
+    const i = deckColorIndex()[name];
+    if (i != null && i < POOL_N) return `var(--dp${i + 1})`;
+    let hsh = 0;
+    for (const ch of String(name)) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+    return `hsl(${hsh % 360} 35% 50%)`;
+  }
+  /** 帯の上に載せる文字の色（明るい色のデッキだけ暗い文字）。 */
+  const deckInk = (name) =>
+    name === "その他"
+      ? "var(--ink)"
+      : LIGHT_DECKS.has(DECK_COLOR[name])
+        ? "#2a2a2a"
+        : "#fff";
+  /** 帯グラフの1区間（割合の帯） */
+  const deckSeg = (k, n, tot) => {
+    const p = n / tot;
+    return `<i class="${k === "スターダスト" ? "lgw" : ""}" style="width:${p * 100}%;background:${deckColor(k)};color:${deckInk(k)}" title="${esc(k)} ${n}戦（${pct(p, 0)}）">${p >= 0.14 ? pct(p, 0) : ""}</i>`;
+  };
+  const deckLegend = (keys, extra) =>
+    keys
+      .map(
+        (k) =>
+          `<span><i class="${k === "スターダスト" ? "lgw" : ""}" style="background:${deckColor(k)}"></i>${esc(k)}${extra ? extra(k) : ""}</span>`,
+      )
+      .join("");
   const DEFAULT_RANK_BANDS = [100, 300, 1000, 3000];
   const RANK_PRESETS = {
     上位: [20, 40, 60, 80, 100, 200],
@@ -2404,34 +2479,86 @@
     }
     const tot = {};
     withR.forEach((m) => (tot[m.opp] = (tot[m.opp] || 0) + 1));
-    const top = Object.entries(tot)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map((x) => x[0]);
-    const keys = top.concat(
-      Object.keys(tot).length > top.length ? ["その他"] : [],
-    );
-    const col = (k) =>
-      k === "その他" ? "var(--c0)" : `var(--c${top.indexOf(k) + 1})`;
+    const keys = MAIN_DECKS.concat(["その他"]);
     el.innerHTML = B.map(([a, b, lab]) => {
       const g = withR.filter((m) => rk[m.id] >= a && rk[m.id] <= b);
       if (!g.length) return "";
       const c = {};
       g.forEach((m) => {
-        const k = top.includes(m.opp) ? m.opp : "その他";
+        const k = mainKey(m.opp);
         c[k] = (c[k] || 0) + 1;
       });
       return `<div class="rsr"><span class="n">${lab}</span><span class="rsbar">${keys
         .filter((k) => c[k])
-        .map((k) => {
-          const p = c[k] / g.length;
-          return `<i style="width:${p * 100}%;background:${col(k)}" title="${esc(k)} ${c[k]}戦（${pct(p, 0)}）">${p >= 0.14 ? pct(p, 0) : ""}</i>`;
-        })
+        .map((k) => deckSeg(k, c[k], g.length))
         .join("")}</span><span class="v">${g.length}戦</span></div>`;
     }).join("");
-    lg.innerHTML = keys
-      .map((k) => `<span><i style="background:${col(k)}"></i>${esc(k)}</span>`)
+    lg.innerHTML = deckLegend(
+      keys.filter((k) => k !== "その他" || Object.keys(tot).some((o) => !isMain(o))),
+    );
+  }
+  /* ---------- 時間帯ごとの相手デッキ（日付＋時間の区切り） ---------- */
+  const TIME_BASE_H = 2; // 区切りの起点（2時・14時）
+  const timeBandH = () =>
+    [3, 6, 12, 24].includes(Number(cfg().timeBandH))
+      ? Number(cfg().timeBandH)
+      : 12;
+  $("#timeBandSeg").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-h]");
+    if (!b) return;
+    cfg().timeBandH = Number(b.dataset.h);
+    saveCfg();
+  });
+  function timeShare(ms) {
+    const el = $("#chTime"),
+      lg = $("#timeLegend"),
+      H = timeBandH();
+    document.querySelectorAll("#timeBandSeg button").forEach((b) =>
+      b.setAttribute("aria-pressed", String(Number(b.dataset.h) === H)),
+    );
+    if (!ms.length) {
+      el.innerHTML = '<div class="empty">対戦を記録すると表示されます。</div>';
+      lg.innerHTML = "";
+      return;
+    }
+    const tot = {};
+    ms.forEach((m) => (tot[m.opp] = (tot[m.opp] || 0) + 1));
+    const keys = MAIN_DECKS.concat(["その他"]);
+    // イベントの開始・終了（14時）に合わせ、2時・14時を起点に H 時間ごとの枠に分ける（記録のない枠は出さない）
+    const groups = new Map();
+    ms.forEach((m) => {
+      const d = new Date(m.ts),
+        h0 = (Math.floor((((d.getHours() - TIME_BASE_H) % 24) + 24) % 24 / H) * H + TIME_BASE_H) % 24,
+        st = new Date(d);
+      st.setHours(h0, 0, 0, 0);
+      if (st > d) st.setDate(st.getDate() - 1);
+      const key = st.getTime(),
+        h1 = h0 + H;
+      if (!groups.has(key))
+        groups.set(key, {
+          lab: `${st.getMonth() + 1}/${st.getDate()} ${h0}–${h1 >= 24 ? "翌" + (h1 - 24) : h1}時`,
+          ts: key,
+          a: [],
+        });
+      groups.get(key).a.push(m);
+    });
+    el.innerHTML = [...groups.values()]
+      .sort((x, y) => x.ts - y.ts)
+      .map(({ lab, a: g }) => {
+        const c = {};
+        g.forEach((m) => {
+          const k = mainKey(m.opp);
+          c[k] = (c[k] || 0) + 1;
+        });
+        return `<div class="rsr"><span class="n">${lab}</span><span class="rsbar">${keys
+          .filter((k) => c[k])
+          .map((k) => deckSeg(k, c[k], g.length))
+          .join("")}</span><span class="v">${g.length}戦</span></div>`;
+      })
       .join("");
+    lg.innerHTML = deckLegend(
+      keys.filter((k) => k !== "その他" || Object.keys(tot).some((o) => !isMain(o))),
+    );
   }
   function renderVersions() {
     const deck = cfg().myDeck,
@@ -2496,30 +2623,17 @@
     }
     const tot = {};
     ms.forEach((m) => (tot[m.opp] = (tot[m.opp] || 0) + 1));
-    // 下から順に：ベンチマークの参照シェアが大きいデッキ → それ以外は実戦で初めて当たった順
-    const E = envRows(),
-      share = (n) => (E[n] && num(E[n].b) != null ? num(E[n].b) : -1);
-    const benchDecks = Object.keys(tot)
-      .filter((n) => share(n) >= 0)
-      .sort((a, b) => share(b) - share(a));
+    // 下から順に：主要デッキ（固定の順）→ それ以外は実戦で初めて当たった順（薄い色で上に積む）
     const restDecks = [];
     ms.forEach((m) => {
-      if (share(m.opp) < 0 && !restDecks.includes(m.opp)) restDecks.push(m.opp);
+      if (!isMain(m.opp) && !restDecks.includes(m.opp)) restDecks.push(m.opp);
     });
-    const keys = benchDecks.concat(restDecks);
-    const palette = [
-      "var(--c1)",
-      "var(--c2)",
-      "var(--c3)",
-      "var(--c4)",
-      "var(--c5)",
-      "var(--c6)",
-    ];
-    const col = (k) => {
-      const i = keys.indexOf(k);
-      return i < palette.length ? palette[i] : `hsl(${(i * 47) % 360} 45% 55%)`;
-    };
-    const key = (m) => m.opp;
+    const keys = MAIN_DECKS.filter((k) =>
+      ms.some((m) => mainKey(m.opp) === k),
+    ).concat(restDecks);
+    const keyOf = (opp) => (isMain(opp) ? mainKey(opp) : opp);
+    const col = (k) => deckColor(k, true);
+    const key = (m) => keyOf(m.opp);
     const pts = ms.map((m, i) => {
       const c = {};
       keys.forEach((k) => (c[k] = 0));
@@ -2565,7 +2679,7 @@
             .map((i) => "L" + X(i).toFixed(1) + " " + Y(lo[i]).toFixed(1))
             .join(" ") +
           " Z";
-      s += `<path d="${d}" fill="${col(k)}" fill-opacity=".85" stroke="var(--panel)" stroke-width=".6"><title>${esc(k)}</title></path>`;
+      s += `<path d="${d}" fill="${col(k)}" fill-opacity="${isMain(k) ? 0.95 : 0.28}" stroke="var(--sep)" stroke-width="${isMain(k) ? 0.9 : 0.5}" stroke-opacity="${isMain(k) ? 1 : 0.5}"><title>${esc(k)}</title></path>`;
       hi.forEach((v, i) => (base[i] = v));
     });
     switchMarks(ms, 0).forEach((mk) => {
@@ -2617,7 +2731,7 @@
         .filter((k) => now[k] > 0 || tot[k])
         .map(
           (k) =>
-            `<span><i style="background:${col(k)}"></i>${esc(k)} <b class="num">${now[k]}</b></span>`,
+            `<span class="${isMain(k) ? "" : "minor"}"><i class="${k === "スターダスト" ? "lgw" : ""}" style="background:${col(k)}"></i>${esc(k)} <b class="num">${now[k]}</b></span>`,
         )
         .join("") + "<span>（数字は最新の10戦）</span>";
   }

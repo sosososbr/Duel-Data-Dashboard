@@ -20,8 +20,8 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Carlito:wght@400;700&display=swap"
     />
-    <link rel="stylesheet" href="assets/style.css?v=20261115a" />
-    <script src="assets/app.js?v=20261115a" defer></script>
+    <link rel="stylesheet" href="assets/style.css?v=20261115e" />
+    <script src="assets/app.js?v=20261115e" defer></script>
   </head>
   <body>
     <header class="top">
@@ -471,7 +471,7 @@
                   >95%信頼区間</span
                 ><span>実線＝50%</span>
               </div>
-              <div class="chart" id="chWr"></div>
+              <div class="chart" id="chWrTrend"></div>
               <div class="verdict" id="wrVerdict"></div>
             </div>
             <div class="card">
@@ -567,6 +567,23 @@
               </div>
               <div class="rs" id="chRank"></div>
               <div class="legend" id="rankLegend"></div>
+            </div>
+            <div class="card">
+              <div class="card-h">
+                <h2>時間帯ごとの相手デッキ</h2>
+                <span class="sub">イベントの開始・終了（14時）に合わせて、2時・14時を起点に区切ります</span>
+              </div>
+              <div class="rankcfg">
+                <span>区切り</span
+                ><span class="seg mini" id="timeBandSeg"
+                  ><button data-h="3">3時間</button
+                  ><button data-h="6">6時間</button
+                  ><button data-h="12">12時間</button
+                  ><button data-h="24">1日</button></span
+                >
+              </div>
+              <div class="rs rs-time" id="chTime"></div>
+              <div class="legend" id="timeLegend"></div>
             </div>
             <div class="card">
               <div class="card-h"><h2>相手デッキ別の勝率</h2></div>
